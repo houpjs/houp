@@ -11,6 +11,10 @@ Houp(hook up) is a simple, fast and reliable solution that can make you share st
 npm install houp
 ```
 
+## Play in Codesandbox
+
+[![Edit infallible-villani-89k5vf](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
+
 ## Add `<Provider />`
 
 Add `<Provider />` to the top of the App. `<Provider />` is just a normal function component, not a Context Provider, so it does not need to wrap the App, which means that `<Provider />` and the App will not affect each other. But it should be noted that you must render it before the component that uses `useStore`, which is why you need to put it before the App.
@@ -43,16 +47,16 @@ export default function useProduct() {
     const [price, setPrice] = useState(5);
     const [count, setCount] = useState(100);
 
-    const update = useCallback(async () => {
+    const updatePrice = useCallback(async () => {
         // await fetch(...)
-        setPrice(100);
-        setCount(30);
+        setPrice(n => n + 1);
     }, []);
 
     return {
         price,
         count,
-        update,
+        updatePrice,
+        setCount,
     };
 }
 
