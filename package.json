@@ -20,12 +20,12 @@
   "scripts": {
     "test": "vitest run && cross-env TEST_STRICT_MODE=1 vitest run",
     "coverage": "vitest run --coverage",
-    "build": "rimraf dist && npm run tsc-cjs && npm run tsc-esm && npm run build-types",
+    "build": "rimraf dist && npm run tsc-cjs && npm run tsc-esm && npm run build-types && node ./build.mjs",
     "tsc-cjs": "tsc -p ./tsconfigs/tsconfig.production.cjs.json",
     "tsc-esm": "tsc -p ./tsconfigs/tsconfig.production.esm.json",
     "build-types": "npm run build-temp-types && npm run rollup-types",
     "build-temp-types": "tsc --emitDeclarationOnly --outDir temp/ -p ./tsconfigs/tsconfig.declaration.json",
-    "rollup-types": "api-extractor run && node -e \"var fs=require('fs');fs.copyFileSync('./dist/index.d.ts','./dist/esm/index.d.ts');fs.renameSync('./tsdoc-metadata.json','./dist/tsdoc-metadata.json');\" && rimraf temp"
+    "rollup-types": "api-extractor run && rimraf temp"
   },
   "engines": {
     "node": ">=18.2.5"
