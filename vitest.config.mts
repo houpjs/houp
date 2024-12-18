@@ -21,6 +21,9 @@ export default defineConfig({
     coverage: {
       include: ["src/**/"],
       reportsDirectory: "./.coverage/",
+      thresholds: {
+        100: true,
+      }
     },
   },
 })

@@ -1,5 +1,5 @@
 {
-  "extends": "./tsConfigs/tsconfig.base.json",
+  "extends": "./tsconfigs/tsconfig.base.json",
   "compilerOptions": {
     "noUncheckedSideEffectImports": true,
     "noEmit": true,
