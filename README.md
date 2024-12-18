@@ -1,3 +1,10 @@
+## Houp
+[![Build Status](https://img.shields.io/github/actions/workflow/status/houpjs/houp/test.yml?branch=main)](https://github.com/houpjs/houp/actions?query=workflow%3Atest)
+[![npm Package](https://img.shields.io/npm/v/houp.svg)](https://www.npmjs.org/package/houp) 
+![NPM dev or peer Dependency Version](https://img.shields.io/npm/dependency-version/houp/peer/react)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/houpjs/houp/blob/master/LICENSE) 
+![node](https://img.shields.io/node/v/houp) 
+
 Houp(hook up) is a simple, fast and reliable solution that can make you share state among multiple components. Whether it is a new project or an existing project, adding Houp is very simple. Houp doesn't care how the state is created and managed, it just shares it.
 
 ```
