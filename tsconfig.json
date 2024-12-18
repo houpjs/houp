@@ -1,0 +1,19 @@
+{
+  "extends": "./tsConfigs/tsconfig.base.json",
+  "compilerOptions": {
+    "noUncheckedSideEffectImports": true,
+    "noEmit": true,
+    "paths": {
+      "houp": [
+        "./src/index.ts"
+      ],
+      "houp/*": [
+        "./src/*.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "tests"
+  ]
+}

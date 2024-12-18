@@ -1,0 +1,74 @@
+{
+  "name": "houp",
+  "version": "0.1.0",
+  "description": "Houp can make you share state among multiple components in react.",
+  "type": "commonjs",
+  "main": "index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./esm/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "default": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run && cross-env TEST_STRICT_MODE=1 vitest run",
+    "coverage": "vitest run --coverage",
+    "build": "rimraf dist && npm run tsc-cjs && npm run tsc-esm && npm run build-types",
+    "tsc-cjs": "tsc -p ./tsconfigs/tsconfig.production.cjs.json",
+    "tsc-esm": "tsc -p ./tsconfigs/tsconfig.production.esm.json",
+    "build-types": "npm run build-temp-types && npm run rollup-types",
+    "build-temp-types": "tsc --emitDeclarationOnly --outDir temp/ -p ./tsconfigs/tsconfig.declaration.json",
+    "rollup-types": "api-extractor run && node -e \"var fs=require('fs');fs.copyFileSync('./dist/index.d.ts','./dist/esm/index.d.ts');fs.renameSync('./tsdoc-metadata.json','./dist/tsdoc-metadata.json');\" && rimraf temp"
+  },
+  "engines": {
+    "node": ">=18.2.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/houpjs/houp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/houpjs/houp/issues"
+  },
+  "keywords": [
+    "react",
+    "hook",
+    "state",
+    "management",
+    "store"
+  ],
+  "author": "houpjs",
+  "license": "MIT",
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.48.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "@types/use-sync-external-store": "^0.0.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
+    "cross-env": "7.0.3",
+    "jsdom": "^25.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "use-sync-external-store": "^1.4.0",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "use-sync-external-store": ">=1.4.0"
+  }
+}
