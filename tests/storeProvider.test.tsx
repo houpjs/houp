@@ -5,7 +5,7 @@ beforeEach(() => {
     vi.resetModules();
 })
 
-describe("should warn when no store has been registered", () => {
+describe("a warning should be triggered if no store has been registered.", () => {
     it("global provider", async () => {
         const { Provider } = await import("houp");
         const consoleSpy = vi
@@ -29,7 +29,7 @@ describe("should warn when no store has been registered", () => {
     })
 })
 
-describe("should warn when multi StoreProvider mounted", () => {
+describe("a warning should be triggered if multiple StoreProvider components are mounted.", () => {
     it("global provider", async () => {
         const { registerStore, Provider } = await import("houp");
         function useTest() {

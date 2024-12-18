@@ -19,7 +19,7 @@ function StoreProviderHookContainer(props: StoreProviderHookProps) {
     const initialedRef = useRef(false);
     const store = tryCreateStoreImpl(props.meta.hook, state);
     if (!initialedRef.current) {
-        // the state may not same as current store state after hydration when ssr, so we need to replace it.
+        // The state may differ from the current store state after hydration in SSR, so it needs to be replaced.
         if (!Object.is(store.getSnapshot(), state)) {
             store.replaceState(state);
         }
@@ -48,20 +48,6 @@ type StoreProviderProps = {
     reference: Reference<symbol>;
 }
 
-/**
- * The `<StoreProvider />` component that provides all stores with the same namespace.
- * In most cases, you should use `<StoreProvider />` in the root of your application.
- * @param props 
- * @example
- * ```tsx
- * createRoot(document.getElementById("root")!).render(
- *   <>
- *     <StoreProvider />
- *     <App />
- *   </>,
- * )
- * ```
- */
 function StoreProviderComponent(props: StoreProviderProps) {
     const store = getHookStore(props.namespace);
     const hooks = useSyncExternalStore(
@@ -107,7 +93,7 @@ function CreateStoreProvider(namespace: symbol): StoreProvider {
 }
 
 /**
- * Create a new {@link StoreProvider} that provides all stores with the same namespace.
+ * Creates a new {@link StoreProvider} that provides all stores under the same namespace.
  * @example
  * ```tsx
  * const MyProvider = CreateProvider();
@@ -127,8 +113,8 @@ export function CreateProvider() {
 const DefaultStoreProvider = CreateStoreProvider(GLOBAL_PROVIDER_NAMESPACE);
 
 /**
- * The global {@link StoreProvider} component that provides all stores registered globally.
- * In most cases, you should use Provider in the root of your application.
+ * The global {@link StoreProvider} component that provides all globally registered stores.
+ * It is recommended to use it at the root of your application.
  * @example
  * ```tsx
  * createRoot(document.getElementById("root")!).render(

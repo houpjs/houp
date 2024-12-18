@@ -9,7 +9,7 @@ export const GLOBAL_PROVIDER_NAMESPACE = Symbol();
  */
 export const STORE_PROVIDER_TYPE = Symbol("StoreProvider");
 /**
- * A hook that can be used to register as a store.
+ * A hook that can be used to register a store.
  */
 export type StoreHook<S = unknown> = () => S;
 
@@ -24,13 +24,13 @@ export type StoreHookMeta<S = unknown> = {
 
 interface IStore<S> {
     /**
-     * Update current state in the store and emit change.
+     * Update the current state in the store and trigger a change.
      * @param state 
      * @returns 
      */
     updateState: (state: S) => void;
     /**
-     * Replace current state in the store but not emit change.
+     * Replace the current state in the store without triggering a change.
      * @param state 
      * @returns 
      */
@@ -129,18 +129,18 @@ function getHooks(namespace: symbol): StoreHookMeta[] {
 }
 
 /**
- * Register a hook as a store.
- * A hook can only be registered once and cannot be registered again before unregistering it.
- * @param hook The hook that will be registered as a store.
- * @returns Returns the registered hook itself
+ * Registers a hook as a store.
+ * A hook can only be registered once and must be unregistered before it can be registered again.
+ * @param hook The hook to be registered as a store.
+ * @returns The registered hook itself.
  */
 export function registerStore<S>(hook: StoreHook<S>): StoreHook<S>;
 /**
  * Register a hook as a store.
- * A hook can only be registered once and cannot be registered again before unregistering it.
- * @param hook The hook that will be registered as a store.
- * @param provider Specifies which provider the store will be registered with. If not specified, the store will be registered in the global provider.
- * @returns Returns the registered hook itself
+ * A hook can only be registered once and must be unregistered before it can be registered again.
+ * @param hook The hook to be registered as a store.
+ * @param provider Specifies the provider with which the store will be registered. If not provided, the store will be registered with the global provider.
+ * @returns The registered hook itself.
  */
 export function registerStore<S>(hook: StoreHook<S>, provider: StoreProvider): StoreHook<S>;
 export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): StoreHook<S> {
@@ -172,10 +172,10 @@ export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): 
 
 /**
  * Unregister a hook from the store.
- * Basically you don't need to unregister a hook, but if it is only used temporarily, 
- * you may need to unregister it after use, 
- * because a hook can only be registered once and cannot be registered again before unregistering it.
- * @param hook A hook to be unregistered.
+ * While it's not usually necessary to unregister a hook, if it's used temporarily, 
+ * you may need to do so to avoid conflicts, as a hook can only be registered once 
+ * and must be unregistered before it can be registered again.
+ * @param hook The hook to be unregistered.
  */
 export function unregisterStore(hook: StoreHook) {
     if (registeredHooks.has(hook)) {
@@ -217,8 +217,8 @@ function addStoreImpl(hook: StoreHook, store: Store<unknown>) {
 }
 
 /**
- * sync storeImplMap
- * when a store is unmounted, it will be removed from storeImplMap
+ * Synchronizes the storeImplMap.
+ * When a store is unmounted, it will be removed from storeImplMap.
  * @internal
  */
 export function syncStoreImpl(hook: StoreHook) {

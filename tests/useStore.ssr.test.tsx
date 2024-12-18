@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 describe("useStore in ssr", () => {
-    it("global provider should work good in ssr", async () => {
+    it("the global provider should work properly in SSR", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const hook = () => {
             return useState(1);
@@ -43,7 +43,7 @@ describe("useStore in ssr", () => {
         await screen.findByText("count:100");
     })
 
-    it("separate provider should also work good in ssr", async () => {
+    it("separate provider should also work properly in SSR", async () => {
         const { useStore, registerStore, CreateProvider } = await import("houp");
         const hook = () => {
             const [count, setCount] = useState(1);

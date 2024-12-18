@@ -19,8 +19,8 @@ function useSyncStoreImpl(hook: StoreHook) {
         hookReference.increase(hook);
         return () => {
             hookReference.decrease(hook);
-            // remove unmounted store in next tick.
-            // store may be marked as unmounted in current tick, because effect will be executed twice in strict mode.
+            // Remove the unmounted store in the next tick.
+            // The store may be marked as unmounted in the current tick because effects are executed twice in strict mode.
             setTimeout(() => {
                 if (hookReference.getReference(hook) === 0) {
                     syncStoreImpl(hook);
@@ -31,9 +31,9 @@ function useSyncStoreImpl(hook: StoreHook) {
 }
 
 /**
- * `useStore` is a react hook that returns the state of a store.
+ * `useStore` is a React hook that returns the state of a registered store.
  * @param hook The hook that has been registered as a store.
- * @returns The return value of the hook.
+ * @returns The state returned by the hook.
  */
 export function useStore<S>(hook: StoreHook<S>): S {
 
@@ -50,12 +50,12 @@ export function useStore<S>(hook: StoreHook<S>): S {
 }
 
 /**
- * `useStoreWithSelector` is a react hook that returns a value selected from the state of a store.
- * Unlike `useStore`, it provides custom selector and equality check, allowing control over when component re-render, improving performance.
- * @param hook The hook that has been registered as a store.
- * @param selector A function that takes the state of the store.
- * @param isEqual A function that comparison between two values to determine if they are equal. If not specified, will use a shallow comparison.
- * @returns The return value of the selector.
+ * `useStoreWithSelector` is a React hook that returns a selected value from a store's state.
+ * Unlike `useStore`, it supports a custom selector and equality check, allowing you to control re-renders for better performance.
+ * @param hook The hook registered as a store.
+ * @param selector A function to select a specific value from the store's state.
+ * @param isEqual A function to compare two values and determine equality. If not provided, shallow comparison is used by default.
+ * @returns The value returned by the selector.
  */
 export function useStoreWithSelector<S, T>(
     hook: StoreHook<S>,

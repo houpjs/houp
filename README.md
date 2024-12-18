@@ -5,7 +5,7 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/houpjs/houp/blob/master/LICENSE) 
 ![node](https://img.shields.io/node/v/houp) 
 
-Houp(hook up) is a simple, fast and reliable solution that can make you share state among multiple components. Whether it is a new project or an existing project, adding Houp is very simple. Houp doesn't care how the state is created and managed, it just shares it.
+Houp(hook up) is a simple, fast, and reliable solution for sharing state across multiple components. Whether you're working on a new project or an existing one, integrating Houp is straightforward. It doesn't matter how the state is created or managed — Houp focuses solely on sharing it.
 
 ```
 npm install houp
@@ -17,7 +17,7 @@ npm install houp
 
 ## Add `<Provider />`
 
-Add `<Provider />` to the top of the App. `<Provider />` is just a normal function component, not a Context Provider, so it does not need to wrap the App, which means that `<Provider />` and the App will not affect each other. But it should be noted that you must render it before the component that uses `useStore`, which is why you need to put it before the App.
+Add `<Provider />` at the top of your App. `<Provider />` is a regular function component, not a Context Provider, so it doesn't need to wrap the App. This means that `<Provider />` and the App will not affect each other. However, it's important to render it before any component that uses `useStore`, which is why it should be placed above the App.
 
 ``` tsx
 import { StrictMode } from "react"
@@ -36,7 +36,7 @@ createRoot(document.getElementById("root")!).render(
 
 ## Register a store
 
-Any React Hook can be registered as a store and then shared between components.
+Any React Hook can be registered as a store and shared across components.
 
 ``` tsx
 // useProduct.js
@@ -65,7 +65,7 @@ registerStore(useProduct);
 
 ## Then use in your components, you're all done!
 
-Use it in any component, because it is a React Hook, the component will re-render on changes.
+Since it's a React Hook, you can use it in any component, and the component will re-render when the state changes.
 
 ``` tsx
 import { useStore } from "houp";
@@ -103,17 +103,17 @@ export function Updater() {
 }
 ```
 
-> You may have noticed that `ProductCount` component will re-render even if you only click the `update price` button. Because `useStore` will fetching everything from the store that it will cause the component to re-render on every state change. If you want to re-render the component only when the `count` or `price` changes, you need to use `useStoreWithSelector`.
+> You may have noticed that the `ProductCount` component re-renders even when you click the `update price` button. This happens because `useStore` fetches all the data from the store, causing the component to re-render on every state change. To re-render the component only when specific state values like `count` or `price` change, you should use `useStoreWithSelector`.
 
 ## useStoreWithSelector
 
-Same as `useStore`, but supports selector and isEqual arguments. With the selector you can select any state you need from the store, and the component will be re-rendered only when the state you selected changes. It detects changes with shallow-equality by default, For more control over re-rendering, you can provide any custom equality function to the isEqual parameter.
+Similar to `useStore`, `useStoreWithSelector` supports both a `selector` and an `isEqual` argument. The `selector` allows you to choose specific state from the store, so the component will only re-render when the selected state changes. By default, it detects changes using shallow equality. For more control over re-rendering, you can provide a custom equality function via the `isEqual` parameter.
 
 ``` tsx
 useStoreWithSelector(hook, selector, isEqual);
 ```
 
-Now, let's use `useStoreWithSelector` to optimize the above components.
+Now, let's use `useStoreWithSelector` to optimize the components mentioned above.
 
 ``` tsx
 import { useStore, useStoreWithSelector } from "houp";

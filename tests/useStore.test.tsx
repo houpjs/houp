@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 describe("useStore", () => {
-    it("should throw error if the store is not registered", async () => {
+    it("an error should be thrown if the store is not registered", async () => {
         const { useStore } = await import("houp");
         const hook = () => {
             return 1;
@@ -29,7 +29,7 @@ describe("useStore", () => {
         })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
     })
 
-    it("should warn if the store has been unmounted but not removed", async () => {
+    it("a warning should be triggered if the store has been unmounted but not removed", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const consoleSpy = vi
             .spyOn(console, "warn")
@@ -51,7 +51,7 @@ describe("useStore", () => {
         expect(consoleSpy).toBeCalledWith("The store(hook) has been unmounted from a Provider. This usually happens when a Provider has been unmounted, and you should not use a store registered to that Provider.");
     })
 
-    it("should throw error if the store has been registered but store provider has been unmounted", async () => {
+    it("an error should be thrown if the store is registered but the store provider has been unmounted", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const hook = () => {
             return useState(1);
@@ -73,7 +73,7 @@ describe("useStore", () => {
         })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
     })
 
-    it("it's ok if hook return null or undefined", async () => {
+    it("it's fine if the hook returns null or undefined", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const nullHook = () => {
             return null;
@@ -103,7 +103,7 @@ describe("useStore", () => {
         await screen.findByText("value:undefined");
     })
 
-    it("use store in single place", async () => {
+    it("use the store in a single location", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const hook = registerStore(() => {
@@ -130,7 +130,7 @@ describe("useStore", () => {
         await screen.findByText("count:2");
     })
 
-    it("store can be shared between different components", async () => {
+    it("the store can be shared across different components", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const hook = () => {
@@ -174,7 +174,7 @@ describe("useStore", () => {
         await screen.findByText("component2 count:3");
     })
 
-    it("can update hook", async () => {
+    it("the hook can be updated", async () => {
         const { useStore, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const hook1 = () => {
@@ -218,7 +218,7 @@ describe("useStore", () => {
 })
 
 describe("useStore with custom provider", () => {
-    it("should throw error if the store has been registered but has not been mounted", async () => {
+    it("an error should be thrown if the store is registered but not mounted", async () => {
         const { useStore, registerStore, CreateProvider } = await import("houp");
         const MyProvider = CreateProvider();
         const hook = () => {
@@ -230,7 +230,7 @@ describe("useStore with custom provider", () => {
         })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
     })
 
-    it("should warn if the store has been unmounted but not removed", async () => {
+    it("a warning should be triggered if the store has been unmounted but not removed", async () => {
         const { useStore, registerStore, CreateProvider } = await import("houp");
         const MyProvider = CreateProvider();
         const consoleSpy = vi
@@ -255,7 +255,7 @@ describe("useStore with custom provider", () => {
 })
 
 describe("useStoreWithSelector", () => {
-    it("component should not be rerendered if the selected value not change", async () => {
+    it("the component should not re-render if the selected value hasn't changed", async () => {
         const { useStoreWithSelector, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const ageEffectSpy = vi.fn();
@@ -379,7 +379,7 @@ describe("useStoreWithSelector", () => {
         await screen.findByText("value:180");
     })
 
-    it("can update isEqual", async () => {
+    it("the isEqual function can be updated", async () => {
         const { useStoreWithSelector, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const hook = () => {

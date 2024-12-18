@@ -7,7 +7,7 @@ beforeEach(() => {
 })
 
 describe("unregisterStore", () => {
-    it("nothing happens if the hook has not been registered", async () => {
+    it("nothing will happen if the hook has not been registered.", async () => {
         const { unregisterStore } = await import("houp");
         function hook() {
             const [count, setCount] = useState(0);
@@ -17,7 +17,7 @@ describe("unregisterStore", () => {
         expect(() => unregisterStore(() => { })).not.toThrow();
     })
 
-    it("should unregister the hook before it is mounted", async () => {
+    it("the hook can be unregistered before it is mounted.", async () => {
         const { registerStore, unregisterStore } = await import("houp");
         const { getHookMeta } = await import("houp/store");
         function hook() {
@@ -29,7 +29,7 @@ describe("unregisterStore", () => {
         expect(getHookMeta(hook)).toBe(null);
     })
 
-    it("should unregister the hook after it is mounted", async () => {
+    it("The hook can be unregistered after it is mounted.", async () => {
         const { registerStore, unregisterStore, useStore, Provider } = await import("houp");
         const consoleSpy = vi
             .spyOn(console, "warn")

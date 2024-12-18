@@ -6,7 +6,7 @@ beforeEach(() => {
 })
 
 describe("registerStore - function with name", () => {
-    it("should warn if a hook has been registered", async () => {
+    it("should trigger a warning if the hook has already been registered.", async () => {
         const { registerStore } = await import("houp");
         function hook() {
             const [count, setCount] = useState(0);
@@ -20,7 +20,7 @@ describe("registerStore - function with name", () => {
         expect(consoleSpy).toBeCalledWith("The store(hook) has been registered. You may have called registerStore(hook) multiple times.");
     })
 
-    it("different keys should be assigned when the registered hook names are the same", async () => {
+    it("different keys should be assigned if the registered hook names are the same.", async () => {
         const { registerStore } = await import("houp");
         const { getHookMeta } = await import("houp/store");
         let hook1;
@@ -60,7 +60,7 @@ describe("registerStore - function without name", () => {
         expect(consoleSpy).toBeCalledWith("The store() has been registered. You may have called registerStore() multiple times.");
     })
 
-    it("different keys should be assigned when the registered hook names are both empty", async () => {
+    it("different keys should be assigned if both registered hook names are empty.", async () => {
         const { registerStore } = await import("houp");
         const { getHookMeta } = await import("houp/store");
         const hook1 = registerStore(() => {
