@@ -63,7 +63,7 @@ export default function useProduct() {
 registerStore(useProduct);
 ```
 
-## Then use in your components, you're all done!
+## Now, use it in your components, and you're all set!
 
 Since it's a React Hook, you can use it in any component, and the component will re-render when the state changes.
 
