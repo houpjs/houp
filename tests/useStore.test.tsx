@@ -15,7 +15,7 @@ describe("useStore", () => {
         };
         expect(() => renderHook(useStore, {
             initialProps: hook,
-        })).toThrow("The store(hook) has not been registered yet. Did you forget to call registerStore(hook) to register?");
+        })).toThrow("The store (hook) has not been registered yet. Did you forget to call registerStore to register it?");
     })
 
     it("should throw error if the store has been registered but has not been mounted", async () => {
@@ -26,7 +26,7 @@ describe("useStore", () => {
         registerStore(hook);
         expect(() => renderHook(useStore, {
             initialProps: hook,
-        })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
+        })).toThrow("Unable to find store (hook). This usually occurs when the Provider is not added to the App or has been unmounted.");
     })
 
     it("a warning should be triggered if the store has been unmounted but not removed", async () => {
@@ -48,7 +48,7 @@ describe("useStore", () => {
             <></>
         );
         hookRender.rerender(hook);
-        expect(consoleSpy).toBeCalledWith("The store(hook) has been unmounted from a Provider. This usually happens when a Provider has been unmounted, and you should not use a store registered to that Provider.");
+        expect(consoleSpy).toBeCalledWith("The store (hook) has been unmounted from its Provider. This usually occurs when the Provider is unmounted, and you should avoid using a store that was registered to that Provider.");
     })
 
     it("an error should be thrown if the store is registered but the store provider has been unmounted", async () => {
@@ -70,7 +70,7 @@ describe("useStore", () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         expect(() => renderHook(useStore, {
             initialProps: hook,
-        })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
+        })).toThrow("Unable to find store (hook). This usually occurs when the Provider is not added to the App or has been unmounted.");
     })
 
     it("it's fine if the hook returns null or undefined", async () => {
@@ -227,7 +227,7 @@ describe("useStore with custom provider", () => {
         registerStore(hook, MyProvider);
         expect(() => renderHook(useStore, {
             initialProps: hook,
-        })).toThrow("Unable to find store(hook), This usually happens when you forget to add Provider or Provider has been unmounted.");
+        })).toThrow("Unable to find store (hook). This usually occurs when the Provider is not added to the App or has been unmounted.");
     })
 
     it("a warning should be triggered if the store has been unmounted but not removed", async () => {
@@ -250,7 +250,7 @@ describe("useStore with custom provider", () => {
             <></>
         );
         hookRender.rerender(hook);
-        expect(consoleSpy).toBeCalledWith("The store(hook) has been unmounted from a Provider. This usually happens when a Provider has been unmounted, and you should not use a store registered to that Provider.");
+        expect(consoleSpy).toBeCalledWith("The store (hook) has been unmounted from its Provider. This usually occurs when the Provider is unmounted, and you should avoid using a store that was registered to that Provider.");
     })
 })
 

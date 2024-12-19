@@ -9,7 +9,7 @@ const hookReference = new Reference<StoreHook<unknown>>();
 function getStoreImplWithWarn<S>(hook: StoreHook<S>) {
     const store = getStoreImpl(hook);
     if (store.isUnmounted) {
-        console.warn(`The store(${hook.name}) has been unmounted from a Provider. This usually happens when a Provider has been unmounted, and you should not use a store registered to that Provider.`);
+        console.warn(`The store (${hook.name}) has been unmounted from its Provider. This usually occurs when the Provider is unmounted, and you should avoid using a store that was registered to that Provider.`);
     }
     return store;
 }

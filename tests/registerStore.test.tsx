@@ -6,7 +6,7 @@ beforeEach(() => {
 })
 
 describe("registerStore - function with name", () => {
-    it("should trigger a warning if the hook has already been registered.", async () => {
+    it("there shouldn't be a warning if the store is registered to the same provider multiple times.", async () => {
         const { registerStore } = await import("houp");
         function hook() {
             const [count, setCount] = useState(0);
@@ -17,7 +17,22 @@ describe("registerStore - function with name", () => {
             .mockImplementation(() => { });
         registerStore(hook);
         registerStore(hook);
-        expect(consoleSpy).toBeCalledWith("The store(hook) has been registered. You may have called registerStore(hook) multiple times.");
+        expect(consoleSpy).not.toBeCalled();
+    })
+
+    it("should trigger a warning if register same hook to different provider.", async () => {
+        const { registerStore, CreateProvider } = await import("houp");
+        const myProvider = CreateProvider();
+        function hook() {
+            const [count, setCount] = useState(0);
+            return [count, setCount];
+        }
+        const consoleSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => { });
+        registerStore(hook);
+        registerStore(hook, myProvider);
+        expect(consoleSpy).toBeCalledWith("The store (hook) has already been registered. It appears that registerStore may have been called multiple times with the same provider.");
     })
 
     it("different keys should be assigned if the registered hook names are the same.", async () => {
@@ -47,7 +62,7 @@ describe("registerStore - function with name", () => {
 })
 
 describe("registerStore - function without name", () => {
-    it("should warn if a hook has been registered", async () => {
+    it("there shouldn't be a warning if the store is registered to the same provider multiple times.", async () => {
         const { registerStore } = await import("houp");
         const consoleSpy = vi
             .spyOn(console, "warn")
@@ -57,7 +72,21 @@ describe("registerStore - function without name", () => {
             return [count, setCount];
         });
         registerStore(hook);
-        expect(consoleSpy).toBeCalledWith("The store() has been registered. You may have called registerStore() multiple times.");
+        expect(consoleSpy).not.toBeCalled();
+    })
+
+    it("should trigger a warning if register same hook to different provider.", async () => {
+        const { registerStore, CreateProvider } = await import("houp");
+        const myProvider = CreateProvider();
+        const consoleSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => { });
+        const hook = registerStore(() => {
+            const [count, setCount] = useState(0);
+            return [count, setCount];
+        });
+        registerStore(hook, myProvider);
+        expect(consoleSpy).toBeCalledWith("The store () has already been registered. It appears that registerStore may have been called multiple times with the same provider.");
     })
 
     it("different keys should be assigned if both registered hook names are empty.", async () => {

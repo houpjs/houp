@@ -144,16 +144,19 @@ export function registerStore<S>(hook: StoreHook<S>): StoreHook<S>;
  */
 export function registerStore<S>(hook: StoreHook<S>, provider: StoreProvider): StoreHook<S>;
 export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): StoreHook<S> {
-    if (registeredHooks.has(hook)) {
-        console.warn(`The store(${hook.name}) has been registered. You may have called registerStore(${hook.name}) multiple times.`);
-        return hook;
-    }
     let namespace: symbol = GLOBAL_PROVIDER_NAMESPACE;
     if (typeof provider === "function") {
         const providerFunc = provider as StoreProvider;
         if (providerFunc.typeStamp === STORE_PROVIDER_TYPE) {
             namespace = providerFunc.namespace;
         }
+    }
+    if (registeredHooks.has(hook)) {
+        const meta = getHookMeta(hook)!;
+        if (meta.namespace !== namespace) {
+            console.warn(`The store (${hook.name}) has already been registered. It appears that registerStore may have been called multiple times with the same provider.`);
+        }
+        return hook;
     }
     const key = generateHookKey(hook);
     registeredHooksKeys.add(key);
@@ -206,7 +209,7 @@ export function getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null {
  */
 export function getHookStore(namespace: symbol) {
     if (!hookStore.has(namespace)) {
-        console.warn(`No store was found. Did you forget to call registerStore to register?`);
+        console.warn(`No store was found. Did you forget to call registerStore to register the store?`);
         hookStore.set(namespace, new Store<StoreHookMeta[]>([]));
     }
     return hookStore.get(namespace)!;
@@ -255,9 +258,9 @@ export function getStoreImpl<S>(hook: StoreHook<S>) {
     const store = storeImplDepository.get(hook);
     if (!store) {
         if (registeredHooks.has(hook)) {
-            throw new Error(`Unable to find store(${hook.name}), This usually happens when you forget to add Provider or Provider has been unmounted.`);
+            throw new Error(`Unable to find store (${hook.name}). This usually occurs when the Provider is not added to the App or has been unmounted.`);
         }
-        throw new Error(`The store(${hook.name}) has not been registered yet. Did you forget to call registerStore(${hook.name}) to register?`);
+        throw new Error(`The store (${hook.name}) has not been registered yet. Did you forget to call registerStore to register it?`);
     }
     return store as Store<S>;
 }

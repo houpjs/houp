@@ -59,7 +59,7 @@ function StoreProviderComponent(props: StoreProviderProps) {
     useEffect(() => {
         props.reference.increase(props.namespace);
         if (props.reference.getReference(props.namespace) > 1) {
-            console.warn(`There are multiple identical Provider mounted. Please ensure that the same Provider can only be mounted once at a time, otherwise it may cause unexpected behavior.`);
+            console.warn(`Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.`);
         }
         return () => {
             props.reference.decrease(props.namespace);

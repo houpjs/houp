@@ -14,7 +14,7 @@ describe("a warning should be triggered if no store has been registered.", () =>
         render(
             <Provider />
         );
-        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register?");
+        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register the store?");
     })
     it("custom provider", async () => {
         const { CreateProvider } = await import("houp");
@@ -25,7 +25,7 @@ describe("a warning should be triggered if no store has been registered.", () =>
         render(
             <MyProvider />
         );
-        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register?");
+        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register the store?");
     })
 })
 
@@ -45,7 +45,7 @@ describe("a warning should be triggered if multiple StoreProvider components are
                 <Provider />
             </>
         );
-        expect(consoleSpy).toBeCalledWith("There are multiple identical Provider mounted. Please ensure that the same Provider can only be mounted once at a time, otherwise it may cause unexpected behavior.");
+        expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.");
     })
     it("custom provider", async () => {
         const { registerStore, CreateProvider } = await import("houp");
@@ -63,6 +63,6 @@ describe("a warning should be triggered if multiple StoreProvider components are
                 <MyProvider />
             </>
         );
-        expect(consoleSpy).toBeCalledWith("There are multiple identical Provider mounted. Please ensure that the same Provider can only be mounted once at a time, otherwise it may cause unexpected behavior.");
+        expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.");
     })
 })

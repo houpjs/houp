@@ -60,9 +60,9 @@ describe("unregisterStore", () => {
                 <Provider />
                 <Component />
             </>);
-        expect(consoleSpy).toBeCalledWith("The store(hook) has been unmounted from a Provider. This usually happens when a Provider has been unmounted, and you should not use a store registered to that Provider.");
+        expect(consoleSpy).toBeCalledWith("The store (hook) has been unmounted from its Provider. This usually occurs when the Provider is unmounted, and you should avoid using a store that was registered to that Provider.");
         rerender(null);
         await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(() => rerender(<Component />)).toThrow("The store(hook) has not been registered yet. Did you forget to call registerStore(hook) to register?");;
+        expect(() => rerender(<Component />)).toThrow("The store (hook) has not been registered yet. Did you forget to call registerStore to register it?");;
     })
 })
