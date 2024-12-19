@@ -42,7 +42,7 @@ export function useStore<S>(hook: StoreHook<S>): S;
  * @param selector A function to select a specific value from the store's state, allowing you to control re-renders for better performance.
  * @returns The value returned by the selector.
  */
-export function useStore<S, T = S>(hook: StoreHook<S>, selector: (state: S) => T,): T
+export function useStore<S, T>(hook: StoreHook<S>, selector: (state: S) => T): T
 /**
  * `useStore` is a React hook that returns a selected value from a store's state with a custom selector and equality check.
  * @param hook The hook registered as a store.
@@ -50,11 +50,11 @@ export function useStore<S, T = S>(hook: StoreHook<S>, selector: (state: S) => T
  * @param isEqual A function to compare two values and determine equality. If not provided, shallow comparison is used by default.
  * @returns The value returned by the selector.
  */
-export function useStore<S, T = S>(hook: StoreHook<S>, selector: (state: S) => T, isEqual: ((a: T, b: T) => boolean) | undefined,): T
+export function useStore<S, T>(hook: StoreHook<S>, selector: (state: S) => T, isEqual: ((a: T, b: T) => boolean)): T
 export function useStore(
     hook: StoreHook,
     selector?: (state: unknown) => unknown,
-    isEqual?: ((a: unknown, b: unknown) => boolean) | undefined,
+    isEqual?: ((a: unknown, b: unknown) => boolean),
 ): unknown {
 
     const store = getStoreImplWithWarn(hook);

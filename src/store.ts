@@ -209,7 +209,6 @@ export function getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null {
  */
 export function getHookStore(namespace: symbol) {
     if (!hookStore.has(namespace)) {
-        console.warn(`No store was found. Did you forget to call registerStore to register the store?`);
         hookStore.set(namespace, new Store<StoreHookMeta[]>([]));
     }
     return hookStore.get(namespace)!;

@@ -3,7 +3,7 @@ import { Reference } from "./reference";
 import { getHookStore, STORE_PROVIDER_TYPE, tryCreateStoreImpl, type StoreHookMeta, GLOBAL_PROVIDER_NAMESPACE } from "./store";
 
 /**
- * Represents a function component that provides all stores with the same namespace.
+ * Represents a function component that provides all stores under the same namespace.
  */
 export type StoreProvider = {
     typeStamp: symbol;

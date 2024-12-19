@@ -5,30 +5,6 @@ beforeEach(() => {
     vi.resetModules();
 })
 
-describe("a warning should be triggered if no store has been registered.", () => {
-    it("global provider", async () => {
-        const { Provider } = await import("houp");
-        const consoleSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => { });
-        render(
-            <Provider />
-        );
-        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register the store?");
-    })
-    it("custom provider", async () => {
-        const { CreateProvider } = await import("houp");
-        const consoleSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => { });
-        const MyProvider = CreateProvider();
-        render(
-            <MyProvider />
-        );
-        expect(consoleSpy).toBeCalledWith("No store was found. Did you forget to call registerStore to register the store?");
-    })
-})
-
 describe("a warning should be triggered if multiple StoreProvider components are mounted.", () => {
     it("global provider", async () => {
         const { registerStore, Provider } = await import("houp");
