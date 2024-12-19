@@ -103,24 +103,24 @@ export function Updater() {
 }
 ```
 
-> You may have noticed that the `ProductCount` component re-renders even when you click the `update price` button. This happens because `useStore` fetches all the data from the store, causing the component to re-render on every state change. To re-render the component only when specific state values like `count` or `price` change, you should use `useStoreWithSelector`.
+> You may have noticed that the `ProductCount` component re-renders even when you click the `update price` button. This happens because `useStore` fetches all the data from the store, causing the component to re-render on every state change. To re-render the component only when specific state values like `count` or `price` change, you should use `useStore` with a selector.
 
-## useStoreWithSelector
+## Using `useStore` with a selector
 
-Similar to `useStore`, `useStoreWithSelector` supports both a `selector` and an `isEqual` argument. The `selector` allows you to choose specific state from the store, so the component will only re-render when the selected state changes. By default, it detects changes using shallow equality. For more control over re-rendering, you can provide a custom equality function via the `isEqual` parameter.
+`useStore` supports both a `selector` and an `isEqual` argument. The `selector` allows you to choose specific state from the store, so the component will only re-render when the selected state changes. By default, it detects changes using shallow equality. For more control over re-rendering, you can provide a custom equality function via the `isEqual` parameter.
 
 ``` tsx
-useStoreWithSelector(hook, selector, isEqual);
+useStore(hook, selector?, isEqual?);
 ```
 
-Now, let's use `useStoreWithSelector` to optimize the components mentioned above.
+Now, let's use `selector` to optimize the components mentioned above.
 
 ``` tsx
-import { useStore, useStoreWithSelector } from "houp";
+import { useStore } from "houp";
 import useProduct from "./useProduct";
 
 export function ProductCount() {
-    const store = useStoreWithSelector(useProduct, s => ({ count: s.count }));
+    const store = useStore(useProduct, s => ({ count: s.count }));
 
     return (
         <>
@@ -130,7 +130,7 @@ export function ProductCount() {
 }
 
 export function ProductPrice() {
-    const store = useStoreWithSelector(useProduct, s => ({ price: s.price }));
+    const store = useStore(useProduct, s => ({ price: s.price }));
 
     return (
         <>

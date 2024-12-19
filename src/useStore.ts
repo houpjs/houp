@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect } from "react";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { Reference } from "./reference";
 import { shallowEqual } from "./shallowEqual";
@@ -35,40 +35,34 @@ function useSyncStoreImpl(hook: StoreHook) {
  * @param hook The hook that has been registered as a store.
  * @returns The state returned by the hook.
  */
-export function useStore<S>(hook: StoreHook<S>): S {
-
-    const store = getStoreImplWithWarn(hook);
-    const state = useSyncExternalStore(
-        store.subscribe,
-        store.getSnapshot,
-        store.getServerSnapshot,
-    );
-
-    useSyncStoreImpl(hook);
-
-    return state;
-}
-
+export function useStore<S>(hook: StoreHook<S>): S;
 /**
- * `useStoreWithSelector` is a React hook that returns a selected value from a store's state.
- * Unlike `useStore`, it supports a custom selector and equality check, allowing you to control re-renders for better performance.
+ * `useStore` is a React hook that returns a selected value from a store's state with a custom selector.
  * @param hook The hook registered as a store.
- * @param selector A function to select a specific value from the store's state.
+ * @param selector A function to select a specific value from the store's state, allowing you to control re-renders for better performance.
+ * @returns The value returned by the selector.
+ */
+export function useStore<S, T = S>(hook: StoreHook<S>, selector: (state: S) => T,): T
+/**
+ * `useStore` is a React hook that returns a selected value from a store's state with a custom selector and equality check.
+ * @param hook The hook registered as a store.
+ * @param selector A function to select a specific value from the store's state, allowing you to control re-renders for better performance.
  * @param isEqual A function to compare two values and determine equality. If not provided, shallow comparison is used by default.
  * @returns The value returned by the selector.
  */
-export function useStoreWithSelector<S, T>(
-    hook: StoreHook<S>,
-    selector: (state: S) => T,
-    isEqual?: ((a: T, b: T) => boolean) | undefined,
-): T {
+export function useStore<S, T = S>(hook: StoreHook<S>, selector: (state: S) => T, isEqual: ((a: T, b: T) => boolean) | undefined,): T
+export function useStore(
+    hook: StoreHook,
+    selector?: (state: unknown) => unknown,
+    isEqual?: ((a: unknown, b: unknown) => boolean) | undefined,
+): unknown {
 
     const store = getStoreImplWithWarn(hook);
     const state = useSyncExternalStoreWithSelector(
         store.subscribe,
         store.getSnapshot,
         store.getServerSnapshot,
-        selector,
+        selector ?? (s => s),
         isEqual ?? shallowEqual,
     );
 

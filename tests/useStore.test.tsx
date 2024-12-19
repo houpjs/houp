@@ -254,9 +254,9 @@ describe("useStore with custom provider", () => {
     })
 })
 
-describe("useStoreWithSelector", () => {
+describe("useStore with selector", () => {
     it("the component should not re-render if the selected value hasn't changed", async () => {
-        const { useStoreWithSelector, registerStore, Provider } = await import("houp");
+        const { useStore, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const ageEffectSpy = vi.fn();
         const heightEffectSpy = vi.fn();
@@ -273,7 +273,7 @@ describe("useStoreWithSelector", () => {
         };
         registerStore(hook);
         const Component = () => {
-            const state = useStoreWithSelector(hook,
+            const state = useStore(hook,
                 (state) => ({
                     age: state.age,
                     setAge: state.setAge,
@@ -290,7 +290,7 @@ describe("useStoreWithSelector", () => {
             );
         }
         const Component2 = () => {
-            const state = useStoreWithSelector(hook,
+            const state = useStore(hook,
                 (state) => ({
                     height: state.height,
                     setHeight: state.setHeight,
@@ -338,7 +338,7 @@ describe("useStoreWithSelector", () => {
     })
 
     it("can update selector", async () => {
-        const { useStoreWithSelector, registerStore, Provider } = await import("houp");
+        const { useStore, registerStore, Provider } = await import("houp");
         const hook = () => {
             const [age, setAge] = useState(12);
             const [height, setHeight] = useState(180);
@@ -352,7 +352,7 @@ describe("useStoreWithSelector", () => {
         };
         registerStore(hook);
         const Component = (props: { selector: (state: any) => { value: number } }) => {
-            const state = useStoreWithSelector(hook, props.selector);
+            const state = useStore(hook, props.selector);
             return (
                 <>
                     <div>value:{state.value}</div>
@@ -380,7 +380,7 @@ describe("useStoreWithSelector", () => {
     })
 
     it("the isEqual function can be updated", async () => {
-        const { useStoreWithSelector, registerStore, Provider } = await import("houp");
+        const { useStore, registerStore, Provider } = await import("houp");
         const user = userEvent.setup();
         const hook = () => {
             const [value, setValue] = useState(0);
@@ -393,7 +393,7 @@ describe("useStoreWithSelector", () => {
         registerStore(hook);
         let renderCount = 0;
         const Component = (props: { isEqual: (a: any, b: any) => boolean }) => {
-            const state = useStoreWithSelector(hook, (s) => s, props.isEqual);
+            const state = useStore(hook, (s) => s, props.isEqual);
             return (
                 <>
                     <button data-testid="button" onClick={() => state.setValue((value) => value + 1)}></button>
