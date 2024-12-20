@@ -217,7 +217,7 @@ describe("useStore", () => {
     })
 })
 
-describe("useStore with custom provider", () => {
+describe("useStore with standalone provider", () => {
     it("an error should be thrown if the store is registered but not mounted", async () => {
         const { useStore, registerStore, CreateProvider } = await import("houp");
         const MyProvider = CreateProvider();

@@ -23,7 +23,7 @@ describe("a warning should be triggered if multiple StoreProvider components are
         );
         expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.");
     })
-    it("custom provider", async () => {
+    it("standalone provider", async () => {
         const { registerStore, CreateProvider } = await import("houp");
         const MyProvider = CreateProvider();
         function useTest() {

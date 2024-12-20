@@ -3,7 +3,7 @@ import { Reference } from "./reference";
 import { getHookStore, STORE_PROVIDER_TYPE, tryCreateStoreImpl, type StoreHookMeta, GLOBAL_PROVIDER_NAMESPACE } from "./store";
 
 /**
- * Represents a function component that provides all stores under the same namespace.
+ * Represents a functional component that provides access to all stores registered within it.
  */
 export type StoreProvider = {
     typeStamp: symbol;
@@ -93,7 +93,7 @@ function CreateStoreProvider(namespace: symbol): StoreProvider {
 }
 
 /**
- * Creates a new {@link StoreProvider} that provides all stores under the same namespace.
+ * Creates a standalone {@link StoreProvider} component that provides access to all stores registered within it.
  * @example
  * ```tsx
  * const MyProvider = CreateProvider();
@@ -113,7 +113,7 @@ export function CreateProvider() {
 const DefaultStoreProvider = CreateStoreProvider(GLOBAL_PROVIDER_NAMESPACE);
 
 /**
- * The global {@link StoreProvider} component that provides all globally registered stores.
+ * The global {@link StoreProvider} component that provides access to all globally registered stores.
  * It is recommended to use it at the root of your application.
  * @example
  * ```tsx
