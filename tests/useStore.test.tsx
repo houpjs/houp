@@ -217,31 +217,29 @@ describe("useStore", () => {
     })
 })
 
-describe("useStore with standalone provider", () => {
+describe("useStore with namespaced provider", () => {
     it("an error should be thrown if the store is registered but not mounted", async () => {
-        const { useStore, registerStore, CreateProvider } = await import("houp");
-        const MyProvider = CreateProvider();
+        const { useStore, registerStore } = await import("houp");
         const hook = () => {
             return useState(1);
         };
-        registerStore(hook, MyProvider);
+        registerStore(hook, "test");
         expect(() => renderHook(useStore, {
             initialProps: hook,
         })).toThrow("Unable to find store (hook). This usually occurs when the Provider is not added to the App or has been unmounted.");
     })
 
     it("a warning should be triggered if the store has been unmounted but not removed", async () => {
-        const { useStore, registerStore, CreateProvider } = await import("houp");
-        const MyProvider = CreateProvider();
+        const { useStore, registerStore, Provider } = await import("houp");
         const consoleSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => { });
         const hook = () => {
             return useState(1);
         };
-        registerStore(hook, MyProvider);
+        registerStore(hook, "test");
         const { rerender } = render(
-            <MyProvider />
+            <Provider namespace="test" />
         );
         const hookRender = renderHook(useStore, {
             initialProps: hook,

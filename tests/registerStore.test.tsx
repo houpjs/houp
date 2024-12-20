@@ -21,8 +21,7 @@ describe("registerStore - function with name", () => {
     })
 
     it("should trigger a warning if register same hook to different provider.", async () => {
-        const { registerStore, CreateProvider } = await import("houp");
-        const myProvider = CreateProvider();
+        const { registerStore } = await import("houp");
         function hook() {
             const [count, setCount] = useState(0);
             return [count, setCount];
@@ -31,8 +30,8 @@ describe("registerStore - function with name", () => {
             .spyOn(console, "warn")
             .mockImplementation(() => { });
         registerStore(hook);
-        registerStore(hook, myProvider);
-        expect(consoleSpy).toBeCalledWith("The store (hook) has already been registered. This usually happens when you register the same hook with different providers simultaneously.");
+        registerStore(hook, "test");
+        expect(consoleSpy).toBeCalledWith("The store (hook) is already registered. This usually occurs when the same hook is registered in different namespaces simultaneously.");
     })
 
     it("different keys should be assigned if the registered hook names are the same.", async () => {
@@ -76,8 +75,7 @@ describe("registerStore - function without name", () => {
     })
 
     it("should trigger a warning if register same hook to different provider.", async () => {
-        const { registerStore, CreateProvider } = await import("houp");
-        const myProvider = CreateProvider();
+        const { registerStore } = await import("houp");
         const consoleSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => { });
@@ -85,8 +83,8 @@ describe("registerStore - function without name", () => {
             const [count, setCount] = useState(0);
             return [count, setCount];
         });
-        registerStore(hook, myProvider);
-        expect(consoleSpy).toBeCalledWith("The store () has already been registered. This usually happens when you register the same hook with different providers simultaneously.");
+        registerStore(hook, "test");
+        expect(consoleSpy).toBeCalledWith("The store () is already registered. This usually occurs when the same hook is registered in different namespaces simultaneously.");
     })
 
     it("different keys should be assigned if both registered hook names are empty.", async () => {

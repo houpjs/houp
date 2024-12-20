@@ -1,13 +1,8 @@
-import type { StoreProvider } from "./storeProvider";
 
 /**
  * @internal
  */
 export const GLOBAL_PROVIDER_NAMESPACE = Symbol();
-/**
- * @internal
- */
-export const STORE_PROVIDER_TYPE = Symbol("StoreProvider");
 /**
  * A hook that can be used to register a store.
  */
@@ -19,7 +14,7 @@ export type StoreHook<S = unknown> = () => S;
 export type StoreHookMeta<S = unknown> = {
     hook: StoreHook<S>;
     key: string;
-    namespace: symbol;
+    namespace: string | symbol;
 }
 
 interface IStore<S> {
@@ -105,7 +100,7 @@ const registeredHooks = new Map<StoreHook, StoreHookMeta>();
 const registeredHooksKeys = new Set<string>();
 
 const storeImplDepository = new Map<StoreHook, Store<unknown>>();
-const hookStore = new Map<symbol, Store<StoreHookMeta[]>>();
+const hookStore = new Map<string | symbol, Store<StoreHookMeta[]>>();
 
 function generateHookKey(hook: StoreHook) {
     const key = hook.name || "anonymous";
@@ -118,7 +113,7 @@ function generateHookKey(hook: StoreHook) {
     return newKey;
 }
 
-function getHooks(namespace: symbol): StoreHookMeta[] {
+function getHooks(namespace: string | symbol): StoreHookMeta[] {
     const hooks: StoreHookMeta[] = [];
     for (const [, value] of registeredHooks) {
         if (value.namespace === namespace) {
@@ -129,32 +124,29 @@ function getHooks(namespace: symbol): StoreHookMeta[] {
 }
 
 /**
- * Registers a hook as a store.
+ * Register a hook as a store in a global namespace.
  * A hook can only be registered once and must be unregistered before it can be registered again.
  * @param hook The hook to be registered as a store.
  * @returns The registered hook itself.
  */
 export function registerStore<S>(hook: StoreHook<S>): StoreHook<S>;
 /**
- * Register a hook as a store.
+ * Register a hook as a store in a specific namespace.
  * A hook can only be registered once and must be unregistered before it can be registered again.
  * @param hook The hook to be registered as a store.
- * @param provider Specifies the provider with which the store will be registered. If not provided, the store will be registered with the global provider.
+ * @param namespace Specifies the namespace under which the store will be registered. If omitted, the store will be registered in the global namespace.
  * @returns The registered hook itself.
  */
-export function registerStore<S>(hook: StoreHook<S>, provider: StoreProvider): StoreHook<S>;
-export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): StoreHook<S> {
-    let namespace: symbol = GLOBAL_PROVIDER_NAMESPACE;
-    if (typeof provider === "function") {
-        const providerFunc = provider as StoreProvider;
-        if (providerFunc.typeStamp === STORE_PROVIDER_TYPE) {
-            namespace = providerFunc.namespace;
-        }
+export function registerStore<S>(hook: StoreHook<S>, namespace: string): StoreHook<S>;
+export function registerStore<S>(hook: StoreHook<S>, namespace?: string): StoreHook<S> {
+    let hiNamespace: string | symbol = GLOBAL_PROVIDER_NAMESPACE;
+    if (namespace) {
+        hiNamespace = namespace;
     }
     if (registeredHooks.has(hook)) {
         const meta = getHookMeta(hook)!;
-        if (meta.namespace !== namespace) {
-            console.warn(`The store (${hook.name}) has already been registered. This usually happens when you register the same hook with different providers simultaneously.`);
+        if (meta.namespace !== hiNamespace) {
+            console.warn(`The store (${hook.name}) is already registered. This usually occurs when the same hook is registered in different namespaces simultaneously.`);
         }
         return hook;
     }
@@ -163,13 +155,13 @@ export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): 
     registeredHooks.set(hook, {
         hook,
         key,
-        namespace,
+        namespace: hiNamespace,
     });
-    if (!hookStore.has(namespace)) {
-        hookStore.set(namespace, new Store<StoreHookMeta[]>([]));
+    if (!hookStore.has(hiNamespace)) {
+        hookStore.set(hiNamespace, new Store<StoreHookMeta[]>([]));
     }
-    const store = hookStore.get(namespace)!;
-    store.updateState(getHooks(namespace));
+    const store = hookStore.get(hiNamespace)!;
+    store.updateState(getHooks(hiNamespace));
     return hook;
 }
 
@@ -207,7 +199,7 @@ export function getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null {
  * @param namespace 
  * @returns 
  */
-export function getHookStore(namespace: symbol) {
+export function getHookStore(namespace: string | symbol) {
     if (!hookStore.has(namespace)) {
         hookStore.set(namespace, new Store<StoreHookMeta[]>([]));
     }

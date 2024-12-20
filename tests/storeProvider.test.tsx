@@ -5,6 +5,33 @@ beforeEach(() => {
     vi.resetModules();
 })
 
+describe("allow adding a provider before registering a store with it", () => {
+    it("global provider", async () => {
+        const { Provider } = await import("houp");
+        const consoleSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => { });
+        render(
+            <>
+                <Provider />
+            </>
+        );
+        expect(consoleSpy).not.toBeCalled();
+    })
+    it("namespaced provider", async () => {
+        const { Provider } = await import("houp");
+        const consoleSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => { });
+        render(
+            <>
+                <Provider namespace="test" />
+            </>
+        );
+        expect(consoleSpy).not.toBeCalled();
+    })
+})
+
 describe("a warning should be triggered if multiple StoreProvider components are mounted.", () => {
     it("global provider", async () => {
         const { registerStore, Provider } = await import("houp");
@@ -23,20 +50,19 @@ describe("a warning should be triggered if multiple StoreProvider components are
         );
         expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.");
     })
-    it("standalone provider", async () => {
-        const { registerStore, CreateProvider } = await import("houp");
-        const MyProvider = CreateProvider();
+    it("namespaced provider", async () => {
+        const { registerStore, Provider } = await import("houp");
         function useTest() {
             return 2;
         }
-        registerStore(useTest, MyProvider);
+        registerStore(useTest, "test");
         const consoleSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => { });
         render(
             <>
-                <MyProvider />
-                <MyProvider />
+                <Provider namespace="test" />
+                <Provider namespace="test" />
             </>
         );
         expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.");

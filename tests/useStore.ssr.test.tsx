@@ -43,8 +43,8 @@ describe("useStore in ssr", () => {
         await screen.findByText("count:100");
     })
 
-    it("separate provider should also work properly in SSR", async () => {
-        const { useStore, registerStore, CreateProvider } = await import("houp");
+    it("namespaced provider should also work properly in SSR", async () => {
+        const { useStore, registerStore, Provider } = await import("houp");
         const hook = () => {
             const [count, setCount] = useState(1);
             return {
@@ -52,10 +52,9 @@ describe("useStore in ssr", () => {
                 setCount,
             };
         };
-        const MyProvider = CreateProvider();
-        registerStore(hook, MyProvider);
+        registerStore(hook, "test");
         const Component = () => {
-            const {count, setCount} = useStore(hook);
+            const { count, setCount } = useStore(hook);
 
             useEffect(() => {
                 setCount(100);
@@ -68,7 +67,7 @@ describe("useStore in ssr", () => {
             );
         }
         const view = <>
-            <MyProvider />
+            <Provider namespace="test" />
             <Component />
         </>;
 
