@@ -32,7 +32,7 @@ describe("registerStore - function with name", () => {
             .mockImplementation(() => { });
         registerStore(hook);
         registerStore(hook, myProvider);
-        expect(consoleSpy).toBeCalledWith("The store (hook) has already been registered. It appears that registerStore may have been called multiple times with the same provider.");
+        expect(consoleSpy).toBeCalledWith("The store (hook) has already been registered. This usually happens when you register the same hook with different providers simultaneously.");
     })
 
     it("different keys should be assigned if the registered hook names are the same.", async () => {
@@ -86,7 +86,7 @@ describe("registerStore - function without name", () => {
             return [count, setCount];
         });
         registerStore(hook, myProvider);
-        expect(consoleSpy).toBeCalledWith("The store () has already been registered. It appears that registerStore may have been called multiple times with the same provider.");
+        expect(consoleSpy).toBeCalledWith("The store () has already been registered. This usually happens when you register the same hook with different providers simultaneously.");
     })
 
     it("different keys should be assigned if both registered hook names are empty.", async () => {

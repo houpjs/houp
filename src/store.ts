@@ -154,7 +154,7 @@ export function registerStore<S>(hook: StoreHook<S>, provider?: StoreProvider): 
     if (registeredHooks.has(hook)) {
         const meta = getHookMeta(hook)!;
         if (meta.namespace !== namespace) {
-            console.warn(`The store (${hook.name}) has already been registered. It appears that registerStore may have been called multiple times with the same provider.`);
+            console.warn(`The store (${hook.name}) has already been registered. This usually happens when you register the same hook with different providers simultaneously.`);
         }
         return hook;
     }
