@@ -1,6 +1,6 @@
 {
   "name": "houp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Houp allows you to share state across multiple components in React.",
   "type": "commonjs",
   "main": "index.js",
