@@ -54,13 +54,14 @@ export type ProviderProps = {
 /**
  * The `<Provider />` component that provides access to all stores registered under the same namespace.
  * It is recommended to use it at the root of your application.
+ * @param props The props of the `<Provider />` component. You can add the namespace prop to the `<Provider />` to make it a namespaced provider.
  * @example
  * ```tsx
  * createRoot(document.getElementById("root")!).render(
- *   <>
+ *   <StrictMode>
  *     <Provider />
  *     <App />
- *   </>,
+ *   </StrictMode>,
  * )
  * ```
  */

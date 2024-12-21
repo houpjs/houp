@@ -124,7 +124,7 @@ function getHooks(namespace: string | symbol): StoreHookMeta[] {
 }
 
 /**
- * Register a hook as a store in a global namespace.
+ * Register a hook as a store in the global namespace.
  * A hook can only be registered once and must be unregistered before it can be registered again.
  * @param hook The hook to be registered as a store.
  * @returns The registered hook itself.
