@@ -13,7 +13,7 @@ npm install houp
 
 ## Play in Codesandbox
 
-[![Edit infallible-villani-89k5vf](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
+[![Edit houp-sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
 
 ## Add `<Provider />`
 
