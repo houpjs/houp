@@ -5,7 +5,7 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/houpjs/houp/blob/master/LICENSE) 
 ![node](https://img.shields.io/node/v/houp) 
 
-Houp(hook up) is a simple, fast, and reliable solution for sharing state across multiple components. Whether you're working on a new project or an existing one, integrating Houp is straightforward. It doesn't matter how the state is created or managed — Houp focuses solely on sharing it.
+Houp(hook up) is a simple, fast, and reliable solution for sharing state across multiple components. Whether you're working on a new project or an existing one, integrating Houp is straightforward. It doesn't matter how the state is created or managed — Houp focuses solely on sharing it. [Read the Docs to Learn More](https://houp.js.org).
 
 ```
 npm install houp
