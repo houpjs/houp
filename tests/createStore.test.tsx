@@ -69,4 +69,15 @@ describe("createStore", () => {
             expect((error as Error).message).toBe("The store do not support being disposed.");
         }
     })
+
+    it("call dispose in ssr is fine", async () => {
+        const oldDocument = document;
+        document = undefined as any;
+        const { createStoreInternal } = await import("houp/store");
+        const store = await act(async () => createStoreInternal(true));
+        
+        await act(async () => store.dispose());
+
+        document = oldDocument;
+    });
 })

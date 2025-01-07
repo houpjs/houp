@@ -247,7 +247,7 @@ export class StandaloneStore implements IStandaloneStore {
     #getRegisterStoreWaitingTask = (hook: StoreHook): Promise<void> => {
         let taskItem = this.#registerStoreWaitingTasks.get(hook);
         if (!taskItem) {
-            let complete: (() => void) = () => { };
+            let complete!: () => void;
             const task = new Promise<void>((resolve) => {
                 complete = () => {
                     resolve();
@@ -255,7 +255,7 @@ export class StandaloneStore implements IStandaloneStore {
             });
             const unsubscribe = this.#subscribeStoreImpl(hook, () => {
                 unsubscribe();
-                complete?.();
+                complete();
             });
             taskItem = {
                 task,
@@ -394,7 +394,7 @@ export class StandaloneStore implements IStandaloneStore {
 export function createStoreInternal(disposable: boolean) {
     const store = new StandaloneStore();
     const Provider = createProvider(store);
-    let dispose = () => { };
+    let dispose: () => void = () => { };
     if (typeof document !== "undefined") {
         const div = document.createElement("div");
         div.dataset["type"] = "houp-provider-do-not-remove";
