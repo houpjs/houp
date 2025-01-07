@@ -1,10 +1,13 @@
+import { createElement, use, useEffect } from "react";
+import { createRoot } from "react-dom/client";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
+import { createProvider } from "./provider";
+import { Reference } from "./reference";
+import { shallowEqual } from "./shallowEqual";
+import { __IS_SSR__, scheduleMicrotask } from "./shared";
 
 /**
- * @internal
- */
-export const GLOBAL_PROVIDER_NAMESPACE = Symbol();
-/**
- * A hook that can be used to register a store.
+ * A hook that can be used as a store.
  */
 export type StoreHook<S = unknown> = () => S;
 
@@ -14,18 +17,17 @@ export type StoreHook<S = unknown> = () => S;
 export type StoreHookMeta<S = unknown> = {
     hook: StoreHook<S>;
     key: string;
-    namespace: string | symbol;
 }
 
-interface IStore<S> {
+interface IExternalStore<S> {
     /**
-     * Update the current state in the store and trigger a change.
+     * Update the current state in the store and trigger a change immediately.
      * @param state 
      * @returns 
      */
     updateState: (state: S) => void;
     /**
-     * Replace the current state in the store without triggering a change.
+     * Replace the current state in the store and trigger a change later.
      * @param state 
      * @returns 
      */
@@ -38,20 +40,24 @@ interface IStore<S> {
     getSnapshot: () => S;
 }
 
-class Store<S> implements IStore<S> {
+class ExternalStore<S> implements IExternalStore<S> {
 
     constructor(state: S) {
         this.#state = state;
     }
     #state: S;
     #isUnmounted: boolean = false;
+    #isPending: boolean = false;
     #listeners = new Set<(() => void)>();
-
 
     #emitChange = () => {
         for (const listener of this.#listeners) {
             listener();
         }
+    }
+
+    #getIsPending = () => {
+        return this.#isPending;
     }
 
     #getIsUnmounted = () => {
@@ -60,11 +66,17 @@ class Store<S> implements IStore<S> {
 
     updateState = (data: S) => {
         this.#state = data;
+        this.#isPending = false;
         this.#emitChange();
     }
 
     replaceState = (state: S) => {
         this.#state = state;
+        this.#isPending = true;
+    }
+
+    get isPending() {
+        return this.#getIsPending();
     }
 
     get isUnmounted() {
@@ -96,162 +108,319 @@ class Store<S> implements IStore<S> {
 
 }
 
-const registeredHooks = new Map<StoreHook, StoreHookMeta>();
-const registeredHooksKeys = new Set<string>();
-
-const storeImplDepository = new Map<StoreHook, Store<unknown>>();
-const hookStore = new Map<string | symbol, Store<StoreHookMeta[]>>();
-
-function generateHookKey(hook: StoreHook) {
-    const key = hook.name || "anonymous";
-    let i = 1;
-    let newKey = key;
-    while (registeredHooksKeys.has(newKey)) {
-        newKey = key + i.toString();
-        i++;
-    }
-    return newKey;
+type UseStore = {
+    <S>(hook: StoreHook<S>): S;
+    <S, T>(hook: StoreHook<S>, selector: (state: S) => T): T;
+    <S, T>(hook: StoreHook<S>, selector: (state: S) => T, isEqual: ((a: T, b: T) => boolean)): T;
+    (hook: StoreHook, selector?: (state: unknown) => unknown, isEqual?: ((a: unknown, b: unknown) => boolean)): unknown;
 }
 
-function getHooks(namespace: string | symbol): StoreHookMeta[] {
-    const hooks: StoreHookMeta[] = [];
-    for (const [, value] of registeredHooks) {
-        if (value.namespace === namespace) {
+/**
+ * @internal
+ */
+export interface IStandaloneStore {
+    useStore: UseStore;
+    /**
+     * Register a hook as a store.
+     * A hook can only be registered once and must be unregistered before it can be registered again.
+     * @param hook The hook to be registered as a store.
+     * @returns The registered hook itself.
+     */
+    registerStore<S>(hook: StoreHook<S>): StoreHook<S>;
+    /**
+     * Unregister a hook from the store.
+     * While it's not usually necessary to unregister a hook, if it's used temporarily, 
+     * you may need to do so to avoid conflicts, as a hook can only be registered once 
+     * and must be unregistered before it can be registered again.
+     * @param hook The hook to be unregistered.
+     */
+    unregisterStore(hook: StoreHook): void;
+    /**
+     * Reset the state of a hook to its initial value.
+     * @param hook The hook to be reset.
+     */
+    resetStore(hook: StoreHook): void;
+    getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null;
+    getHookStore(): ExternalStore<StoreHookMeta[]>;
+    tryCreateStoreImpl(hook: StoreHook, state: unknown): ExternalStore<unknown>;
+    attach(): void;
+    detach(): void;
+    dispose(): void;
+}
+
+/**
+ * @internal
+ */
+export class StandaloneStore implements IStandaloneStore {
+
+    #attached: boolean = false;
+    #hookReference = new Reference<StoreHook<unknown>>();
+
+    #registeredHooks = new Map<StoreHook, StoreHookMeta>();
+    #registeredHooksKeys = new Set<string>();
+
+    #storeImplDepository = new Map<StoreHook, ExternalStore<unknown>>();
+    #hookStore = new ExternalStore<StoreHookMeta[]>([]);
+
+    #storeImplListeners: Map<StoreHook, Set<() => void>> = new Map();
+
+    #registerStoreWaitingTasks = new Map<StoreHook, { task: Promise<void>, complete: () => void }>();
+
+    #subscribeStoreImpl = (hook: StoreHook, listener: () => void) => {
+        const listeners = this.#storeImplListeners.get(hook) ?? new Set();
+        listeners.add(listener);
+        if (!this.#storeImplListeners.has(hook)) {
+            this.#storeImplListeners.set(hook, listeners);
+        }
+        return () => {
+            listeners.delete(listener);
+            if (listeners.size === 0) {
+                this.#storeImplListeners.delete(hook);
+            }
+        };
+    }
+
+    #emitStoreImplChange = (hook: StoreHook) => {
+        const listeners = this.#storeImplListeners.get(hook);
+        if (listeners) {
+            for (const listener of listeners) {
+                listener();
+            }
+        }
+    }
+
+    #generateHookKey = (hook: StoreHook) => {
+        const key = hook.name || "anonymous";
+        let i = 1;
+        let newKey = key;
+        while (this.#registeredHooksKeys.has(newKey)) {
+            newKey = key + i.toString();
+            i++;
+        }
+        return newKey;
+    }
+
+    #getHooks = (): StoreHookMeta[] => {
+        const hooks: StoreHookMeta[] = [];
+        for (const [, value] of this.#registeredHooks) {
             hooks.push(value);
         }
+        return hooks;
     }
-    return hooks;
-}
 
-/**
- * Register a hook as a store in the global namespace.
- * A hook can only be registered once and must be unregistered before it can be registered again.
- * @param hook The hook to be registered as a store.
- * @returns The registered hook itself.
- */
-export function registerStore<S>(hook: StoreHook<S>): StoreHook<S>;
-/**
- * Register a hook as a store in a specific namespace.
- * A hook can only be registered once and must be unregistered before it can be registered again.
- * @param hook The hook to be registered as a store.
- * @param namespace Specifies the namespace under which the store will be registered. If omitted, the store will be registered in the global namespace.
- * @returns The registered hook itself.
- */
-export function registerStore<S>(hook: StoreHook<S>, namespace: string): StoreHook<S>;
-export function registerStore<S>(hook: StoreHook<S>, namespace?: string): StoreHook<S> {
-    let hiNamespace: string | symbol = GLOBAL_PROVIDER_NAMESPACE;
-    if (namespace) {
-        hiNamespace = namespace;
-    }
-    if (registeredHooks.has(hook)) {
-        const meta = getHookMeta(hook)!;
-        if (meta.namespace !== hiNamespace) {
-            console.warn(`The store (${hook.name}) is already registered. This usually occurs when the same hook is registered in different namespaces simultaneously.`);
+    #getStoreImpl = <S>(hook: StoreHook<S>) => {
+        const store = this.#storeImplDepository.get(hook);
+        if (!store) {
+            throw new Error(`Unable to find the store (${hook.name}). This usually happens if the store has been disposed.`);
         }
+        return store as ExternalStore<S>;
+    }
+
+    /**
+     * Synchronizes the #storeImplDepository.
+     * When a store is unmounted, it will be removed from #storeImplDepository.
+     */
+    #syncStoreImpl = (hook: StoreHook) => {
+        const store = this.#storeImplDepository.get(hook);
+        if (store &&
+            store.isUnmounted) {
+            this.#storeImplDepository.delete(hook);
+        }
+    }
+
+    #useSyncStoreImpl = (hook: StoreHook) => {
+        useEffect(() => {
+            this.#hookReference.increase(hook);
+            return () => {
+                this.#hookReference.decrease(hook);
+                // Remove the unmounted store in the next tick.
+                // The store may be marked as unmounted in the current tick because effects are executed twice in strict mode.
+                scheduleMicrotask(() => {
+                    if (this.#hookReference.getReference(hook) === 0) {
+                        this.#syncStoreImpl(hook);
+                    }
+                });
+            }
+        }, [hook])
+    }
+
+    #getRegisterStoreWaitingTask = (hook: StoreHook): Promise<void> => {
+        let taskItem = this.#registerStoreWaitingTasks.get(hook);
+        if (!taskItem) {
+            let complete: (() => void) = () => { };
+            const task = new Promise<void>((resolve) => {
+                complete = () => {
+                    resolve();
+                }
+            });
+            const unsubscribe = this.#subscribeStoreImpl(hook, () => {
+                unsubscribe();
+                complete?.();
+            });
+            taskItem = {
+                task,
+                complete,
+            };
+            this.#registerStoreWaitingTasks.set(hook, taskItem);
+        }
+        return taskItem.task;
+    }
+
+    #waitStore = (hook: StoreHook) => {
+        if (!this.#attached) {
+            return;
+        }
+        const store = this.#storeImplDepository.get(hook);
+        if (store && !store.isUnmounted) {
+            this.#registerStoreWaitingTasks.delete(hook);
+            return;
+        }
+        if (!this.#registeredHooks.has(hook)) {
+            this.registerStore(hook);
+        }
+        use(this.#getRegisterStoreWaitingTask(hook));
+    }
+
+    useStore: UseStore = (
+        hook: StoreHook,
+        selector?: (state: unknown) => unknown,
+        isEqual?: ((a: unknown, b: unknown) => boolean),
+    ): unknown => {
+        if (__IS_SSR__) {
+            // __IS_SSR__ is a constant value, so it's safe to call hook here.
+            const initialState = hook();
+            this.tryCreateStoreImpl(hook, initialState);
+        } else {
+            this.#waitStore(hook);
+        }
+        const store = this.#getStoreImpl(hook);
+        const state = useSyncExternalStoreWithSelector(
+            store.subscribe,
+            store.getSnapshot,
+            store.getServerSnapshot,
+            selector ?? (s => s),
+            isEqual ?? shallowEqual,
+        );
+
+        this.#useSyncStoreImpl(hook);
+
+        return state;
+    }
+
+    registerStore = <S>(hook: StoreHook<S>): StoreHook<S> => {
+        if (this.#registeredHooks.has(hook)) {
+            console.warn(`The store (${hook.name}) is already registered. Please file an issue at https://github.com/houpjs/houp/issues if you encounter this warning.`);
+            return hook;
+        }
+        const key = this.#generateHookKey(hook);
+        this.#registeredHooksKeys.add(key);
+        this.#registeredHooks.set(hook, {
+            hook,
+            key,
+        });
+        this.#hookStore.updateState(this.#getHooks());
         return hook;
     }
-    const key = generateHookKey(hook);
-    registeredHooksKeys.add(key);
-    registeredHooks.set(hook, {
-        hook,
-        key,
-        namespace: hiNamespace,
-    });
-    if (!hookStore.has(hiNamespace)) {
-        hookStore.set(hiNamespace, new Store<StoreHookMeta[]>([]));
-    }
-    const store = hookStore.get(hiNamespace)!;
-    store.updateState(getHooks(hiNamespace));
-    return hook;
-}
 
-/**
- * Unregister a hook from the store.
- * While it's not usually necessary to unregister a hook, if it's used temporarily, 
- * you may need to do so to avoid conflicts, as a hook can only be registered once 
- * and must be unregistered before it can be registered again.
- * @param hook The hook to be unregistered.
- */
-export function unregisterStore(hook: StoreHook) {
-    if (registeredHooks.has(hook)) {
-        const { key, namespace } = registeredHooks.get(hook)!;
-        registeredHooksKeys.delete(key);
-        registeredHooks.delete(hook);
-        hookStore.get(namespace)!.updateState(getHooks(namespace));
-    }
-}
-
-/**
- * 
- * @internal
- * @param hook
- * @returns 
- */
-export function getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null {
-    if (registeredHooks.has(hook)) {
-        return registeredHooks.get(hook) as StoreHookMeta<S>;
-    }
-    return null;
-}
-
-/**
- * @internal
- * @param namespace 
- * @returns 
- */
-export function getHookStore(namespace: string | symbol) {
-    if (!hookStore.has(namespace)) {
-        hookStore.set(namespace, new Store<StoreHookMeta[]>([]));
-    }
-    return hookStore.get(namespace)!;
-}
-
-function addStoreImpl(hook: StoreHook, store: Store<unknown>) {
-    storeImplDepository.set(hook, store);
-}
-
-/**
- * Synchronizes the storeImplMap.
- * When a store is unmounted, it will be removed from storeImplMap.
- * @internal
- */
-export function syncStoreImpl(hook: StoreHook) {
-    const store = storeImplDepository.get(hook);
-    if (store &&
-        store.isUnmounted) {
-        storeImplDepository.delete(hook);
-    }
-}
-
-/**
- * 
- * @internal
- * @param hook 
- * @param state 
- * @param getServerState 
- * @returns 
- */
-export function tryCreateStoreImpl(hook: StoreHook, state: unknown) {
-    let store = storeImplDepository.get(hook);
-    if (!store || store.isUnmounted) {
-        store = new Store(state);
-        addStoreImpl(hook, store);
-    }
-    return store;
-}
-
-/**
- * @internal
- * @param hook 
- * @returns 
- */
-export function getStoreImpl<S>(hook: StoreHook<S>) {
-    const store = storeImplDepository.get(hook);
-    if (!store) {
-        if (registeredHooks.has(hook)) {
-            throw new Error(`Unable to find store (${hook.name}). This usually occurs when the Provider is not added to the App or has been unmounted.`);
+    unregisterStore = (hook: StoreHook) => {
+        if (this.#registeredHooks.has(hook)) {
+            // Do not remove the key from this.#registeredHooksKeys when unregistering,
+            // as it ensures the key remains unique if the hook is registered again,
+            // and allows the Provider to refresh its state.
+            this.#registeredHooks.delete(hook);
+            this.#hookStore.updateState(this.#getHooks());
         }
-        throw new Error(`The store (${hook.name}) has not been registered yet. Did you forget to call registerStore to register it?`);
     }
-    return store as Store<S>;
+
+    resetStore = (hook: StoreHook): void => {
+        if (this.#registeredHooks.has(hook)) {
+            this.#registeredHooks.delete(hook);
+            const store = this.#storeImplDepository.get(hook);
+            if (store) {
+                store.unmount();
+            }
+            this.registerStore(hook);
+        }
+    }
+
+    getHookMeta = <S>(hook: StoreHook<S>): StoreHookMeta<S> | null => {
+        if (this.#registeredHooks.has(hook)) {
+            return this.#registeredHooks.get(hook) as StoreHookMeta<S>;
+        }
+        return null;
+    }
+
+    getHookStore = () => {
+        return this.#hookStore;
+    }
+
+    tryCreateStoreImpl = (hook: StoreHook, state: unknown) => {
+        let store = this.#storeImplDepository.get(hook);
+        if (!store) {
+            store = new ExternalStore(state);
+            this.#storeImplDepository.set(hook, store);
+            this.#emitStoreImplChange(hook);
+        } else if (store.isUnmounted) {
+            // The state may differ from the current store state after unmounted, so it needs to be replaced.
+            store.mount();
+            store.replaceState(state);
+        }
+        return store;
+    }
+
+    attach = (): void => {
+        this.#attached = true;
+    }
+
+    detach = (): void => {
+        this.#attached = false;
+    }
+
+    dispose = (): void => {
+        this.#registeredHooks.clear();
+        this.#registeredHooksKeys.clear();
+        this.#storeImplDepository.clear();
+        this.#hookStore.updateState([]);
+        this.detach();
+    }
+}
+
+/**
+ * Create a standalone store.
+ * **WARNING**: This is not a public API. do not use it in your code.
+ * @returns A store.
+ * @internal
+ */
+export function createStoreInternal(disposable: boolean) {
+    const store = new StandaloneStore();
+    const Provider = createProvider(store);
+    let dispose = () => { };
+    if (typeof document !== "undefined") {
+        const div = document.createElement("div");
+        div.dataset["type"] = "houp-provider-do-not-remove";
+        div.style.display = "none";
+        div.style.position = "absolute";
+        div.style.zIndex = "-999";
+        document.body.appendChild(div);
+        const root = createRoot(div);
+        root.render(createElement(Provider));
+        dispose = () => {
+            root.unmount();
+            div.remove();
+            store.detach();
+        }
+        store.attach();
+    }
+    return {
+        useStore: store.useStore,
+        resetStore: store.resetStore,
+        DO_NOT_USE_Unregister: store.unregisterStore,
+        dispose: () => {
+            if (!disposable) {
+                throw new Error("The store do not support being disposed.");
+            }
+            store.dispose();
+            dispose();
+        },
+    };
 }

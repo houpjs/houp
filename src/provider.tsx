@@ -1,30 +1,21 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { type FC, useEffect, useRef, useSyncExternalStore } from "react";
 import { Reference } from "./reference";
-import { type StoreHookMeta, getHookStore, GLOBAL_PROVIDER_NAMESPACE, tryCreateStoreImpl } from "./store";
+import type { IStandaloneStore, StoreHookMeta } from "./store";
 
-const namespaceReference = new Reference<string | symbol>();
+const providerReference = new Reference<IStandaloneStore>();
 
-function getNamespace(namespace?: string) {
-    if (!namespace) {
-        return GLOBAL_PROVIDER_NAMESPACE;
-    }
-    return namespace;
-}
-
-type ProviderHookContainerProps = {
+type HookContainerProps = {
+    /**
+     * The store of the provider.
+     */
+    store: IStandaloneStore;
     meta: StoreHookMeta;
 }
 
-function ProviderHookContainer(props: ProviderHookContainerProps) {
+function HookContainer(props: HookContainerProps) {
     const state = props.meta.hook();
     const initialedRef = useRef(false);
-    const store = tryCreateStoreImpl(props.meta.hook, state);
-    if (!initialedRef.current) {
-        // The state may differ from the current store state after hydration in SSR, so it needs to be replaced.
-        if (!Object.is(store.getSnapshot(), state)) {
-            store.replaceState(state);
-        }
-    }
+    const store = props.store.tryCreateStoreImpl(props.meta.hook, state);
 
     useEffect(() => {
         store.mount();
@@ -34,40 +25,25 @@ function ProviderHookContainer(props: ProviderHookContainerProps) {
     }, [store])
 
     useEffect(() => {
-        if (initialedRef.current) {
+        if (initialedRef.current || store.isPending) {
             store.updateState(state);
-        } else {
-            initialedRef.current = true;
         }
+        initialedRef.current = true;
     })
 
     return null;
 }
 
-export type ProviderProps = {
+type ProviderProps = {
     /**
-     * The namespace of the provider.
+     * The store of the provider.
      */
-    namespace?: string;
+    store: IStandaloneStore;
 }
 
-/**
- * The `<Provider />` component that provides access to all stores registered under the same namespace.
- * It is recommended to use it at the root of your application.
- * @param props The props of the `<Provider />` component. You can add the namespace prop to the `<Provider />` to make it a namespaced provider.
- * @example
- * ```tsx
- * createRoot(document.getElementById("root")!).render(
- *   <StrictMode>
- *     <Provider />
- *     <App />
- *   </StrictMode>,
- * )
- * ```
- */
-export function Provider(props: ProviderProps) {
-    const namespace = getNamespace(props.namespace);
-    const store = getHookStore(namespace);
+function ProviderHost(props: ProviderProps) {
+    props.store.attach();
+    const store = props.store.getHookStore();
     const hooks = useSyncExternalStore(
         store.subscribe,
         store.getSnapshot,
@@ -75,22 +51,44 @@ export function Provider(props: ProviderProps) {
     );
 
     useEffect(() => {
-        namespaceReference.increase(namespace);
-        if (namespaceReference.getReference(namespace) > 1) {
-            console.warn(`Multiple identical Providers are mounted. Please ensure that each Provider is only mounted once to avoid potential unexpected behavior.`);
+        props.store.attach();
+        providerReference.increase(props.store);
+        if (providerReference.getReference(props.store) > 1) {
+            console.warn(`Multiple identical Providers are mounted. Please file an issue at https://github.com/houpjs/houp/issues if you encounter this warning.`);
         }
         return () => {
-            namespaceReference.decrease(namespace);
+            props.store.detach();
+            providerReference.decrease(props.store);
         }
-    }, [namespace])
+    }, [props.store])
 
     return (
         <>
             {
                 hooks.map((meta) => (
-                    <ProviderHookContainer key={meta.key} meta={meta} />
+                    <HookContainer
+                        key={meta.key}
+                        store={props.store}
+                        meta={meta} />
                 ))
             }
         </>
     );
+}
+
+/**
+ * **WARNING**: This is not a public API. do not use it in your code.
+ * @internal
+ * @param store 
+ * @returns 
+ */
+export function createProvider(store: IStandaloneStore) {
+    const Provider: FC = () => {
+        return (
+            <>
+                <ProviderHost store={store} />
+            </>
+        );
+    }
+    return Provider;
 }

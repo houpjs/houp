@@ -20,6 +20,7 @@ export default defineConfig({
     reporters: "basic",
     coverage: {
       include: ["src/**/"],
+      exclude: ["src/shared.ts"],
       reportsDirectory: "./.coverage/",
       thresholds: {
         100: true,

@@ -7,6 +7,8 @@
 
 Houp(hook up) is a simple, fast, and reliable solution for sharing state across multiple components. Whether you're working on a new project or an existing one, integrating Houp is straightforward. It doesn't matter how the state is created or managed — Houp focuses solely on sharing it. [Read the Docs to Learn More](https://houp.js.org).
 
+> Houp only supports React 19 and later versions.
+
 ```
 npm install houp
 ```
@@ -15,42 +17,23 @@ npm install houp
 
 [![Edit houp-sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
 
-## Add `<Provider />`
 
-Add `<Provider />` at the top of your App. `<Provider />` is a regular function component, not a Context Provider, so it doesn't need to wrap the App. This means that `<Provider />` and the App will not affect each other. However, it's important to render it before any component that uses `useStore`, which is why it should be placed above the App.
+## Create your hook
 
-``` tsx
-import { StrictMode } from "react"
-import { createRoot } from "react-dom/client"
-import App from "./App.tsx"
-import { Provider } from "houp"
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Provider />
-    <App />
-  </StrictMode>,
-)
-
-```
-
-## Register a store
-
-Any React Hook can be registered as a store and shared across components.
+Any React Hook can be used as a store and shared across components.
 
 ``` tsx
 // useProduct.js
-import { useCallback, useState } from "react";
-import { registerStore } from "houp";
+import { useState } from "react";
 
 export default function useProduct() {
     const [price, setPrice] = useState(5);
     const [count, setCount] = useState(100);
 
-    const updatePrice = useCallback(async () => {
+    const updatePrice = async () => {
         // await fetch(...)
         setPrice(n => n + 1);
-    }, []);
+    };
 
     return {
         price,
@@ -59,8 +42,6 @@ export default function useProduct() {
         setCount,
     };
 }
-
-registerStore(useProduct);
 ```
 
 ## Now, use it in your components, and you're all set!

@@ -1,4 +1,5 @@
-import { act, render } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,61 +9,84 @@ beforeEach(() => {
 
 describe("unregisterStore", () => {
     it("nothing will happen if the hook has not been registered.", async () => {
-        const { unregisterStore } = await import("houp");
+        const { StandaloneStore } = await import("houp/store");
+        const store = new StandaloneStore();
         function hook() {
             const [count, setCount] = useState(0);
             return [count, setCount];
         }
-        expect(() => unregisterStore(hook)).not.toThrow();
-        expect(() => unregisterStore(() => { })).not.toThrow();
+        expect(() => store.unregisterStore(hook)).not.toThrow();
+        expect(() => store.unregisterStore(() => { })).not.toThrow();
     })
 
     it("the hook can be unregistered before it is mounted.", async () => {
-        const { registerStore, unregisterStore } = await import("houp");
-        const { getHookMeta } = await import("houp/store");
+        const { StandaloneStore } = await import("houp/store");
+        const store = new StandaloneStore();
         function hook() {
             const [count, setCount] = useState(0);
             return [count, setCount];
         }
-        registerStore(hook);
-        unregisterStore(hook);
-        expect(getHookMeta(hook)).toBe(null);
+        store.registerStore(hook);
+        store.unregisterStore(hook);
+        expect(store.getHookMeta(hook)).toBe(null);
+    })
+
+    it("different keys should be assigned if the unregistered hook register again.", async () => {
+        const { StandaloneStore } = await import("houp/store");
+        const store = new StandaloneStore();
+        function hook() {
+            const [count, setCount] = useState(0);
+            return [count, setCount];
+        }
+        store.registerStore(hook);
+        store.unregisterStore(hook);
+        store.registerStore(hook);
+        expect(store.getHookMeta(hook)?.key).toBe("hook1");
     })
 
     it("The hook can be unregistered after it is mounted.", async () => {
-        const { registerStore, unregisterStore, useStore, Provider } = await import("houp");
-        const consoleSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => { });
+        const { createStoreInternal } = await import("houp/store");
+        const store = await act(async () => createStoreInternal(true));
+        const user = userEvent.setup();
         function hook() {
             return useState(0);
         }
-        registerStore(hook);
         const Component = () => {
-            const [count] = useStore(hook);
+            const [count, setCount] = store.useStore(hook);
             return (
                 <>
                     <div>value:{count}</div>
+                    <button data-testid="button" onClick={() => setCount((c) => c + 1)}></button>
+                    <button data-testid="button2" onClick={() => store.DO_NOT_USE_Unregister(hook)}></button>
                 </>
             );
         }
-        const { rerender } = render(
+        const { rerender } = await act(async () => render(
             <>
-                <Provider />
                 <Component />
             </>
-        );
-        await act(async () => {
-            unregisterStore(hook);
-        });
-        rerender(
+        ));
+        await screen.findByText("value:0");
+        await user.click(screen.getByTestId("button"));
+        await screen.findByText("value:1");
+        await act(async () => await user.click(screen.getByTestId("button2")));
+        await act(async () => rerender(
             <>
-                <Provider />
                 <Component />
-            </>);
-        expect(consoleSpy).toBeCalledWith("The store (hook) has been unmounted from its Provider. This usually occurs when the Provider is unmounted, and you should avoid using a store that was registered to that Provider.");
-        rerender(null);
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(() => rerender(<Component />)).toThrow("The store (hook) has not been registered yet. Did you forget to call registerStore to register it?");;
+            </>));
+        await screen.findByText("value:0");
+        await user.click(screen.getByTestId("button"));
+        await screen.findByText("value:1");
+        await act(async () => store.DO_NOT_USE_Unregister(hook));
+        // test syncStoreImpl
+        await act(async () => rerender(null));
+        await act(async () => rerender(
+            <>
+                <Component />
+            </>));
+        await screen.findByText("value:0");
+        await user.click(screen.getByTestId("button"));
+        await screen.findByText("value:1");
     })
+
 })
