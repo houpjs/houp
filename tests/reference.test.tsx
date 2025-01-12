@@ -1,10 +1,11 @@
-import { renderHook } from "@testing-library/react";
+import { configure, renderHook } from "@testing-library/react";
 import { Reference } from "houp/reference";
 import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 beforeEach(() => {
     vi.resetModules();
+    configure({ reactStrictMode: Boolean(process.env.TEST_STRICT_MODE) });
 })
 
 describe("reference", () => {

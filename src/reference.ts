@@ -22,4 +22,12 @@ export class Reference<T> implements IReference<T> {
     getReference = (target: T) => {
         return this.#reference.get(target) ?? 0;
     }
+
+    remove = (target: T) => {
+        this.#reference.delete(target);
+    }
+
+    clear = () => {
+        this.#reference.clear();
+    }
 }

@@ -18,13 +18,14 @@ npm install houp
 [![Edit houp-sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
 
 
-## Create your hook
+## Register a store
 
 Any React Hook can be used as a store and shared across components.
 
 ``` tsx
 // useProduct.js
 import { useState } from "react";
+import { registerStore } from "houp";
 
 export default function useProduct() {
     const [price, setPrice] = useState(5);
@@ -42,6 +43,8 @@ export default function useProduct() {
         setCount,
     };
 }
+
+registerStore(useProduct);
 ```
 
 ## Now, use it in your components, and you're all set!

@@ -2,4 +2,7 @@
 .vscode
 node_modules
 dist
+temp
+lib
+esm
 tsdoc-metadata.json

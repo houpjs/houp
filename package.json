@@ -4,24 +4,22 @@
   "description": "Houp allows you to share state across multiple components in React.",
   "homepage": "http://houp.js.org",
   "type": "commonjs",
-  "main": "index.js",
-  "types": "./index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./esm/index.d.ts",
-        "default": "./esm/index.js"
-      },
-      "default": {
-        "types": "./index.d.ts",
-        "default": "./index.js"
-      }
+      "types": "./esm/index.d.ts",
+      "default": "./esm/index.js"
+    },
+    "./lib": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
     }
   },
   "scripts": {
     "test": "vitest run && cross-env TEST_STRICT_MODE=1 vitest run",
     "coverage": "vitest run --coverage",
-    "build": "rimraf dist && npm run tsc-cjs && npm run tsc-esm && npm run build-types && node ./build.mjs",
+    "build": "rimraf dist && npm run tsc-cjs && npm run tsc-esm && npm run build-types && node ./build.mjs && rimraf esm",
     "tsc-cjs": "tsc -p ./tsconfigs/tsconfig.production.cjs.json",
     "tsc-esm": "tsc -p ./tsconfigs/tsconfig.production.esm.json",
     "build-types": "npm run build-temp-types && npm run rollup-types",

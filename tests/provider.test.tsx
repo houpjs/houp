@@ -1,31 +1,21 @@
-import { render } from "@testing-library/react";
+import { configure, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 beforeEach(() => {
     vi.resetModules();
+    configure({ reactStrictMode: Boolean(process.env.TEST_STRICT_MODE) });
 })
 
 describe("allow adding a provider before registering a store with it", () => {
-    it("global provider", async () => {
-        const { createProvider } = await import("../src/provider");
+    it("render one provider", async () => {
+        const { StoreProvider } = await import("../src/provider/storeProvider");
         const { StandaloneStore } = await import("houp/store");
         const store = new StandaloneStore();
-        const Provider = createProvider(store);
-        const consoleSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => { });
-        render(
-            <>
-                <Provider />
-            </>
-        );
-        expect(consoleSpy).not.toBeCalled();
-    })
-    it("standalone provider", async () => {
-        const { createProvider } = await import("../src/provider");
-        const { StandaloneStore } = await import("houp/store");
-        const store = new StandaloneStore();
-        const Provider = createProvider(store);
+        const Provider = () => {
+            return (
+                <StoreProvider store={store}/>
+            );
+        }
         const consoleSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => { });
@@ -39,11 +29,15 @@ describe("allow adding a provider before registering a store with it", () => {
 })
 
 describe("a warning should be triggered if multiple StoreProvider components are mounted.", () => {
-    it("multiple provider", async () => {
-        const { createProvider } = await import("../src/provider");
+    it("render multiple provider", async () => {
+        const { StoreProvider } = await import("../src/provider/storeProvider");
         const { StandaloneStore } = await import("houp/store");
         const store = new StandaloneStore();
-        const Provider = createProvider(store);
+        const Provider = () => {
+            return (
+                <StoreProvider store={store}/>
+            );
+        }
         const consoleSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(() => { });
