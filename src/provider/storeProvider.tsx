@@ -15,7 +15,6 @@ type StoreProviderProps = {
  * @returns 
  */
 export function StoreProvider(props: StoreProviderProps) {
-    props.store.attach();
     const store = props.store.getHookStore();
     const hooks = useSyncExternalStore(
         store.subscribe,
@@ -24,13 +23,11 @@ export function StoreProvider(props: StoreProviderProps) {
     );
 
     useEffect(() => {
-        props.store.attach();
         providerReference.increase(props.store);
         if (providerReference.getReference(props.store) > 1) {
             console.warn("Multiple identical Providers are mounted. Please file an issue at https://github.com/houpjs/houp/issues if you encounter this warning.");
         }
         return () => {
-            props.store.detach();
             providerReference.decrease(props.store);
         }
     }, [props.store])

@@ -7,8 +7,6 @@
 
 Houp(hook up) is a simple, fast, and reliable solution for sharing state across multiple components. Whether you're working on a new project or an existing one, integrating Houp is straightforward. It doesn't matter how the state is created or managed — Houp focuses solely on sharing it. [Read the Docs to Learn More](https://houp.js.org).
 
-> Houp only supports React 19 and later versions.
-
 ```
 npm install houp
 ```
@@ -18,14 +16,13 @@ npm install houp
 [![Edit houp-sample](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/infallible-villani-89k5vf)
 
 
-## Register a store
+## Create your hook
 
-Any React Hook can be used as a store and shared across components.
+Any React hook can be used as a store and shared across components.
 
-``` tsx
-// useProduct.js
+```tsx
+// useProduct.ts
 import { useState } from "react";
-import { registerStore } from "houp";
 
 export default function useProduct() {
     const [price, setPrice] = useState(5);
@@ -43,8 +40,38 @@ export default function useProduct() {
         setCount,
     };
 }
+```
 
-registerStore(useProduct);
+## Create a Provider
+
+`createProvider` creates a `StoreProvider` component that provides the store to its child components. It takes an array of hooks as a parameter, which will be used as the store. Now, we pass `useProduct` as a parameter to `createProvider`.
+
+```tsx
+// provider.ts
+import useProduct from "./useProduct";
+import { createProvider } from "houp";
+
+export const Provider = createProvider([useProduct]);
+```
+
+## Add the Provider to your app
+
+We add the `Provider` at the root of our app so that we can use the store anywhere within the app.
+
+```tsx
+// main.tsx
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import App from "./App"
+import { Provider } from "./provider";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <Provider>
+      <App />
+    </Provider>
+  </StrictMode>,
+)
 ```
 
 ## Now, use it in your components, and you're all set!

@@ -6,36 +6,14 @@ beforeEach(() => {
     configure({ reactStrictMode: Boolean(process.env.TEST_STRICT_MODE) });
 })
 
-describe("allow adding a provider before registering a store with it", () => {
-    it("render one provider", async () => {
-        const { StoreProvider } = await import("../src/provider/storeProvider");
-        const { StandaloneStore } = await import("houp/store");
-        const store = new StandaloneStore();
-        const Provider = () => {
-            return (
-                <StoreProvider store={store}/>
-            );
-        }
-        const consoleSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => { });
-        render(
-            <>
-                <Provider />
-            </>
-        );
-        expect(consoleSpy).not.toBeCalled();
-    })
-})
-
-describe("a warning should be triggered if multiple StoreProvider components are mounted.", () => {
+describe("a warning should be issued if the same StoreProvider component is mounted more than once at the same time", () => {
     it("render multiple provider", async () => {
         const { StoreProvider } = await import("../src/provider/storeProvider");
         const { StandaloneStore } = await import("houp/store");
-        const store = new StandaloneStore();
+        const store = new StandaloneStore([]);
         const Provider = () => {
             return (
-                <StoreProvider store={store}/>
+                <StoreProvider store={store} />
             );
         }
         const consoleSpy = vi
