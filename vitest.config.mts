@@ -17,7 +17,6 @@ export default defineConfig({
     dir: "tests",
     setupFiles: ["tests/setup.ts"],
     globalSetup: ["tests/globalSetup.ts"],
-    reporters: "basic",
     coverage: {
       include: ["src/**/"],
       exclude: ["src/shared.ts"],
