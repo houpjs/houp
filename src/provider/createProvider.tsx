@@ -21,8 +21,8 @@ const storeReference = new Reference<IStandaloneStore>();
 export function createProvider(hooks: StoreHook[]): StoreProvider {
     const Provider = (props: PropsWithChildren) => {
         const preStoreMap = useContext(StoreContext);
-        const storeMapRef = useRef<StoreMap>(null);
-        const storeRef = useRef<IStandaloneStore>(null);
+        const storeMapRef = useRef<StoreMap | null>(null);
+        const storeRef = useRef<IStandaloneStore | null>(null);
         if (!storeRef.current) {
             const store = new StandaloneStore(hooks);
             storeRef.current = store;

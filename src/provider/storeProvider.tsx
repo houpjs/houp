@@ -35,11 +35,11 @@ export function StoreProvider(props: StoreProviderProps) {
     return (
         <>
             {
-                hooks.map((meta) => (
+                hooks.map((metadata) => (
                     <HookContainer
-                        key={meta.key}
+                        key={metadata.containerKey}
                         store={props.store}
-                        meta={meta} />
+                        metadata={metadata} />
                 ))
             }
         </>

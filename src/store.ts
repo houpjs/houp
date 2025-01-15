@@ -9,9 +9,44 @@ export type StoreHook<S = unknown> = () => S;
 /**
  * @internal
  */
-export type StoreHookMeta<S = unknown> = {
+export type StoreHookExecutorMetadata<S = unknown> = {
     hook: StoreHook<S>;
-    key: string;
+    executorKey: string;
+}
+
+class StoreHookExecutor<S = unknown> {
+    constructor(hook: StoreHook<S>, executorKey: string) {
+        this.#hook = hook;
+        this.#executorKey = executorKey;
+    }
+    #hook: StoreHook<S>;
+    #executorKeyIndex = 0;
+    #executorKey: string;
+    #latestMetadata: StoreHookExecutorMetadata<S> | null = null;
+
+    renewExecutorKey = () => {
+        this.#executorKeyIndex += 1;
+        this.#executorKey = this.#executorKey + "_" + this.#executorKeyIndex.toString();
+    }
+
+    getExecutorMetadata(): StoreHookExecutorMetadata<S> {
+        if (this.#latestMetadata?.executorKey !== this.#executorKey) {
+            this.#latestMetadata = {
+                hook: this.#hook,
+                executorKey: this.#executorKey,
+            }
+        }
+        return this.#latestMetadata;
+    }
+}
+
+/**
+ * @internal
+ */
+export type StoreHookMetadata<S = unknown> = {
+    executorStore: ExternalStore<StoreHookExecutorMetadata>;
+    executor: StoreHookExecutor<S>;
+    containerKey: string;
 }
 
 /**
@@ -27,8 +62,8 @@ export interface IStandaloneStore {
      * Reset all store hooks to their initial state.
      */
     resetAllStore(): void;
-    getHookMeta<S>(hook: StoreHook<S>): StoreHookMeta<S> | null;
-    getHookStore(): ExternalStore<StoreHookMeta[]>;
+    getHookMeta<S>(hook: StoreHook<S>): StoreHookMetadata<S> | null;
+    getHookStore(): ExternalStore<StoreHookMetadata[]>;
     tryCreateStoreImpl(hook: StoreHook, state: unknown): ExternalStore<unknown>;
     getStoreImpl<S>(hook: StoreHook<S>): ExternalStore<S>;
     dispose(): void;
@@ -53,11 +88,15 @@ export class StandaloneStore implements IStandaloneStore {
 
     #hookReference = new Reference<StoreHook<unknown>>();
 
-    #registeredHooks = new Map<StoreHook, StoreHookMeta>();
+    #registeredHooks = new Map<StoreHook, StoreHookMetadata>();
+
+    // Do not remove the key from #registeredHooksKeys when hooks change,
+    // as it ensures the key remains unique if the hook is removed and added again,
+    // and allows the Provider to refresh its state.
     #registeredHooksKeys = new Set<string>();
 
     #storeImplDepository = new Map<StoreHook, ExternalStore<unknown>>();
-    #hookStore = new ExternalStore<StoreHookMeta[]>([]);
+    #hookStore = new ExternalStore<StoreHookMetadata[]>([]);
 
     #generateHookKey = (hook: StoreHook) => {
         const key = hook.name || "anonymous";
@@ -70,34 +109,26 @@ export class StandaloneStore implements IStandaloneStore {
         return newKey;
     }
 
-    #addHook = (hook: StoreHook | StoreHook[]): boolean => {
+    #addHook = (hooks: StoreHook[]): boolean => {
         let added = false;
         const addItem = (item: StoreHook) => {
             if (!this.#registeredHooks.has(item)) {
                 const key = this.#generateHookKey(item);
                 this.#registeredHooksKeys.add(key);
-                this.#registeredHooks.set(item, {
-                    hook: item,
-                    key,
-                });
+                const executor = new StoreHookExecutor(item, key);
+                const metadata: StoreHookMetadata = {
+                    executorStore: new ExternalStore(executor.getExecutorMetadata()),
+                    executor: executor,
+                    containerKey: key,
+                }
+                this.#registeredHooks.set(item, metadata);
                 added = true;
             }
         }
-        if (Array.isArray(hook)) {
-            for (const item of hook) {
-                addItem(item);
-            }
-        } else {
-            addItem(hook);
+        for (const item of hooks) {
+            addItem(item);
         }
         return added;
-    }
-
-    #removeHook = (hook: StoreHook): boolean => {
-        // Do not remove the key from this.#registeredHooksKeys when unregistering,
-        // as it ensures the key remains unique if the hook is registered again,
-        // and allows the Provider to refresh its state.
-        return this.#registeredHooks.delete(hook);
     }
 
     #updateHookStore = () => {
@@ -118,14 +149,13 @@ export class StandaloneStore implements IStandaloneStore {
             console.warn(`Cannot reset the store (${hook.name}) because it does not exist in the StoreProvider.`);
             return;
         }
-        this.#removeHook(hook);
         const store = this.#storeImplDepository.get(hook);
         if (store) {
             store.unmount();
         }
-        if (this.#addHook(hook)) {
-            this.#updateHookStore();
-        }
+        const hookMetadata = this.#registeredHooks.get(hook)!;
+        hookMetadata.executor.renewExecutorKey();
+        hookMetadata.executorStore.updateState(hookMetadata.executor.getExecutorMetadata());
     }
 
     resetAllStore = () => {
@@ -138,9 +168,9 @@ export class StandaloneStore implements IStandaloneStore {
         this.#updateHookStore();
     }
 
-    getHookMeta = <S>(hook: StoreHook<S>): StoreHookMeta<S> | null => {
+    getHookMeta = <S>(hook: StoreHook<S>): StoreHookMetadata<S> | null => {
         if (this.#registeredHooks.has(hook)) {
-            return this.#registeredHooks.get(hook) as StoreHookMeta<S>;
+            return this.#registeredHooks.get(hook) as StoreHookMetadata<S>;
         }
         return null;
     }

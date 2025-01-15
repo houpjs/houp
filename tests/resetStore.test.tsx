@@ -38,7 +38,7 @@ describe("resetStore", () => {
                 <Component />
             </Provider>
         ));
-        await user.click(screen.getByTestId("button"));        
+        await user.click(screen.getByTestId("button"));
         expect(consoleSpy).toBeCalledWith("Cannot reset the store (hook2) because it does not exist in the StoreProvider.");
     })
 
@@ -76,5 +76,73 @@ describe("resetStore", () => {
         await screen.findByText("value:0");
         await user.click(screen.getByTestId("button"));
         await screen.findByText("value:1");
+    })
+
+    it("reset specific store should not cause other store re-render.", async () => {
+        const { useStore, createProvider, useProvider } = await act(async () => await import("houp"));
+        const user = userEvent.setup();
+        function hook() {
+            return useState(0);
+        }
+        function hook1() {
+            return useState(0);
+        }
+        const Provider = createProvider([hook, hook1]);
+        const render1 = vi.fn();
+        const render2 = vi.fn();
+        const Component = () => {
+            render1();
+            const [count, setCount] = useStore(hook);
+            const provider = useProvider(hook);
+            return (
+                <>
+                    <div>value:{count}</div>
+                    <button data-testid="button" onClick={() => setCount((c) => c + 1)}></button>
+                    <button data-testid="button2" onClick={() => provider.resetStore(hook)}></button>
+                </>
+            );
+        }
+        const Component2 = () => {
+            render2();
+            const [count, setCount] = useStore(hook1);
+            const provider = useProvider(hook1);
+            return (
+                <>
+                    <div>value-2:{count}</div>
+                    <button data-testid="button-2" onClick={() => setCount((c) => c + 1)}></button>
+                    <button data-testid="button2-2" onClick={() => provider.resetStore(hook1)}></button>
+                </>
+            );
+        }
+        await act(async () => render(
+            <Provider>
+                <Component />
+                <Component2 />
+            </Provider>
+        ));
+        expect(render1).toBeCalledTimes(1);
+        expect(render2).toBeCalledTimes(1);
+        await screen.findByText("value:0");
+        await screen.findByText("value-2:0");
+        await user.click(screen.getByTestId("button"));
+        expect(render1).toBeCalledTimes(2);
+        expect(render2).toBeCalledTimes(1);
+        await screen.findByText("value:1");
+        await screen.findByText("value-2:0");
+        await user.click(screen.getByTestId("button2"));
+        expect(render1).toBeCalledTimes(3);
+        expect(render2).toBeCalledTimes(1);
+        await screen.findByText("value:0");
+        await screen.findByText("value-2:0");
+        await user.click(screen.getByTestId("button-2"));
+        expect(render1).toBeCalledTimes(3);
+        expect(render2).toBeCalledTimes(2);
+        await screen.findByText("value:0");
+        await screen.findByText("value-2:1");
+        await user.click(screen.getByTestId("button2-2"));
+        expect(render1).toBeCalledTimes(3);
+        expect(render2).toBeCalledTimes(3);
+        await screen.findByText("value:0");
+        await screen.findByText("value-2:0");
     })
 })
