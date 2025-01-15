@@ -81,6 +81,7 @@ describe("resetStore", () => {
     it("reset specific store should not cause other store re-render.", async () => {
         const { useStore, createProvider, useProvider } = await act(async () => await import("houp"));
         const user = userEvent.setup();
+        const reactStrictMode = Boolean(process.env.TEST_STRICT_MODE);
         function hook() {
             return useState(0);
         }
@@ -120,28 +121,28 @@ describe("resetStore", () => {
                 <Component2 />
             </Provider>
         ));
-        expect(render1).toBeCalledTimes(1);
-        expect(render2).toBeCalledTimes(1);
+        expect(render1).toBeCalledTimes(reactStrictMode ? 2 : 1);
+        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button"));
-        expect(render1).toBeCalledTimes(2);
-        expect(render2).toBeCalledTimes(1);
+        expect(render1).toBeCalledTimes(reactStrictMode ? 4 : 2);
+        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:1");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button2"));
-        expect(render1).toBeCalledTimes(3);
-        expect(render2).toBeCalledTimes(1);
+        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button-2"));
-        expect(render1).toBeCalledTimes(3);
-        expect(render2).toBeCalledTimes(2);
+        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toBeCalledTimes(reactStrictMode ? 4 : 2);
         await screen.findByText("value:0");
         await screen.findByText("value-2:1");
         await user.click(screen.getByTestId("button2-2"));
-        expect(render1).toBeCalledTimes(3);
-        expect(render2).toBeCalledTimes(3);
+        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toBeCalledTimes(reactStrictMode ? 6 : 3);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
     })
