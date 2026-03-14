@@ -25,6 +25,6 @@ describe("a warning should be issued if the same StoreProvider component is moun
                 <Provider />
             </>
         );
-        expect(consoleSpy).toBeCalledWith("Multiple identical Providers are mounted. Please file an issue at https://github.com/houpjs/houp/issues if you encounter this warning.");
+        expect(consoleSpy).toHaveBeenCalledWith("Multiple identical Providers are mounted. Please file an issue at https://github.com/houpjs/houp/issues if you encounter this warning.");
     })
 })

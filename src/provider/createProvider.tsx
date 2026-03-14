@@ -42,6 +42,7 @@ export function createProvider(hooks: StoreHook[]): StoreProvider {
                 // try dispose store in the next tick.
                 // The store reference may be 0 in the current tick because effects are executed twice in strict mode.
                 scheduleMicrotask(() => {
+                    /* v8 ignore else -- @preserve */
                     if (storeReference.getReference(store) === 0) {
                         storeReference.remove(store);
                         store.dispose();

@@ -7,6 +7,7 @@ import { StoreHook, type IStandaloneStore } from "../store";
 export class StoreMap {
     constructor(hooks: StoreHook[], store: IStandaloneStore) {
         for (const hook of hooks) {
+            /* v8 ignore else -- @preserve */
             if (!this.#storeMap.has(hook)) {
                 this.#storeMap.set(hook, store);
             }

@@ -39,7 +39,7 @@ describe("resetStore", () => {
             </Provider>
         ));
         await user.click(screen.getByTestId("button"));
-        expect(consoleSpy).toBeCalledWith("Cannot reset the store (hook2) because it does not exist in the StoreProvider.");
+        expect(consoleSpy).toHaveBeenCalledWith("Cannot reset the store (hook2) because it does not exist in the StoreProvider.");
     })
 
     it("should work fine.", async () => {
@@ -121,28 +121,28 @@ describe("resetStore", () => {
                 <Component2 />
             </Provider>
         ));
-        expect(render1).toBeCalledTimes(reactStrictMode ? 2 : 1);
-        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
+        expect(render1).toHaveBeenCalledTimes(reactStrictMode ? 2 : 1);
+        expect(render2).toHaveBeenCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button"));
-        expect(render1).toBeCalledTimes(reactStrictMode ? 4 : 2);
-        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
+        expect(render1).toHaveBeenCalledTimes(reactStrictMode ? 4 : 2);
+        expect(render2).toHaveBeenCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:1");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button2"));
-        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
-        expect(render2).toBeCalledTimes(reactStrictMode ? 2 : 1);
+        expect(render1).toHaveBeenCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toHaveBeenCalledTimes(reactStrictMode ? 2 : 1);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
         await user.click(screen.getByTestId("button-2"));
-        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
-        expect(render2).toBeCalledTimes(reactStrictMode ? 4 : 2);
+        expect(render1).toHaveBeenCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toHaveBeenCalledTimes(reactStrictMode ? 4 : 2);
         await screen.findByText("value:0");
         await screen.findByText("value-2:1");
         await user.click(screen.getByTestId("button2-2"));
-        expect(render1).toBeCalledTimes(reactStrictMode ? 6 : 3);
-        expect(render2).toBeCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render1).toHaveBeenCalledTimes(reactStrictMode ? 6 : 3);
+        expect(render2).toHaveBeenCalledTimes(reactStrictMode ? 6 : 3);
         await screen.findByText("value:0");
         await screen.findByText("value-2:0");
     })

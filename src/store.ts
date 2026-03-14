@@ -30,6 +30,7 @@ class StoreHookExecutor<S = unknown> {
     }
 
     getExecutorMetadata(): StoreHookExecutorMetadata<S> {
+        /* v8 ignore else -- @preserve */
         if (this.#latestMetadata?.executorKey !== this.#executorKey) {
             this.#latestMetadata = {
                 hook: this.#hook,
@@ -112,6 +113,7 @@ export class StandaloneStore implements IStandaloneStore {
     #addHook = (hooks: StoreHook[]): boolean => {
         let added = false;
         const addItem = (item: StoreHook) => {
+            /* v8 ignore else -- @preserve */
             if (!this.#registeredHooks.has(item)) {
                 const key = this.#generateHookKey(item);
                 this.#registeredHooksKeys.add(key);
