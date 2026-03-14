@@ -17,7 +17,7 @@
     "rollup-types": "api-extractor run && rimraf temp"
   },
   "engines": {
-    "node": ">=18.2.5"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
